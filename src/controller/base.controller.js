@@ -20,7 +20,7 @@ class Controller {
 
     error(res, err) {
         // TODO: Uncomment below before deployment.
-        res.status(err.status || STATUS.ERROR)
+        res.status(err.code || STATUS.ERROR)
             .header('Access-Control-Allow-Origin','*')
             .send(ErrorManager.get(err));
     }

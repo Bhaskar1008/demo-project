@@ -2,13 +2,16 @@
 
 class InternalError extends Error {
 
-    constructor(message) {
+    constructor(message, errors) {
         super(message);
-        this.status = 500;
+        this.name = this.constructor.name;
+        this.errors = errors;
+        this.code = 500;
+        this.status = 'Failed';
     }
 
     statusCode() {
-        return this.status;
+        return this.code;
     }
 }
 
