@@ -1,0 +1,71 @@
+---
+swagger: 2.0
+info:
+  title: AwsServerlessExpressApi
+basePath: /prod
+schemes:
+  - https
+paths:
+  /{proxy+}:
+    x-amazon-apigateway-any-method:
+      produces:
+        - application/json
+      parameters:
+        - name: proxy
+          in: path
+          required: true
+          type: string
+      responses: {}
+      # security:
+      # - CognitoAuthorizer1:
+      #   - "https://api.iorta.in/all"
+      x-amazon-apigateway-integration:
+        uri: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${stageVariables.ServerlessExpressLambdaFunctionName}/invocations
+        httpMethod: POST
+        type: aws_proxy
+    options:
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      responses:
+        200:
+          description: 200 response
+          schema:
+            $ref: "#/definitions/Empty"
+          headers:
+            Access-Control-Allow-Origin:
+              type: string
+            Access-Control-Allow-Methods:
+              type: string
+            Access-Control-Allow-Headers:
+              type: string
+      x-amazon-apigateway-integration:
+        contentHandling: CONVERT_TO_TEXT
+        responses:
+          default:
+            statusCode: 200
+            responseParameters:
+              method.response.header.Access-Control-Allow-Methods: "'DELETE,GET,HEAD,OPTIONS,PATCH,POST,PUT'"
+              method.response.header.Access-Control-Allow-Headers: "'Content-Type,Authorization,X-Amz-Date,X-Api-Key,X-Amz-Security-Token'"
+              method.response.header.Access-Control-Allow-Origin: "'https://example.com'"
+        passthroughBehavior: when_no_match
+        requestTemplates:
+          application/json: '{"statusCode": 200}'
+        type: mock
+# securityDefinitions:
+#   CognitoAuthorizer1:
+#     type: "apiKey"
+#     name: "Authorization"
+#     in: "header"
+#     x-amazon-apigateway-authtype: "cognito_user_pools"
+#     x-amazon-apigateway-authorizer:
+#       type: "cognito_user_pools"
+#       providerARNs:
+#       - arn:aws:cognito-idp:ap-south-1:397611673480:userpool/ap-south-1_UUOvyqtor
+definitions:
+  Empty:
+    type: object
+    title: Empty Schema
+x-amazon-apigateway-binary-media-types:
+  - "*/*"

@@ -1,0 +1,114 @@
+# This is the SAM template that represents the architecture of your serverless application
+# https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/serverless-sam-template-basics.html
+
+# The AWSTemplateFormatVersion identifies the capabilities of the template
+# https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/format-version-structure.html
+AWSTemplateFormatVersion: 2010-09-09
+Description: >-
+  sample-2
+
+# Transform section specifies one or more macros that AWS CloudFormation uses to process your template
+# https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/transform-section-structure.html
+Transform:
+- AWS::Serverless-2016-10-31
+
+# Resources declares the AWS resources that you want to include in the stack
+# https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/resources-section-structure.html
+Resources:
+  
+  ApiGatewayApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      DefinitionUri: ./proxy-api.yml
+      StageName: prod
+      Variables:
+        ServerlessExpressLambdaFunctionName: !Ref DemoAPIFunctions
+  
+  
+  # Each Lambda function is defined by properties:
+  # https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+
+  # This is a Lambda function config associated with the source code: get-all-items.js
+  DemoAPIFunctions:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: ./src/index.handle
+      Runtime: nodejs14.x
+      Architectures:
+        - x86_64
+      MemorySize: 128
+      Timeout: 100
+      Description: A simple example includes a HTTP get method to get all items from a DynamoDB table.
+      Policies:
+        - Statement:
+            Effect: Allow
+            Action:
+              - s3:PutObject
+              - dynamodb:PutItem
+              - dynamodb:GetItem
+              - dynamodb:Scan
+              - dynamodb:Query
+              - dynamodb:UpdateItem
+              - dynamodb:BatchGetItem
+              - sqs:SendMessage
+              - sqs:ReceiveMessage
+              - states:*
+            Resource: "*"
+      Environment:
+        Variables:
+          REGION: us-east-1
+          TABLE_NAME_CUSTOMER: customer
+          TABLE_NAME_VEHICLE: vehicle
+          TABLE_NAME_VEHICLE_IMAGE: vehicle_upload_image
+          TABLE_NAME_LOAN: Loan
+          TABLE_NAME_RENTLE_VEHICLE: rental_vehical
+          TABLE_NAME_ACCESSORIES: vehical_accessories
+          TABLE_NAME_VEHICLE_BRAND: vehicle_brand
+          TABLE_NAME_VEHICLE_MODEL: vehicle_model
+      # Events:
+      #   Api:
+      #     Type: Api
+      #     Properties:
+      #       Path: /customer
+      #       Method: GET
+      Events:
+        ProxyApiGreedy:
+          Type: Api
+          Properties:
+            RestApiId:
+              Ref: ApiGatewayApi
+            Path: /{proxy+}
+            Method: ANY
+  
+  # Simple syntax to create a DynamoDB table with a single attribute primary key, more in
+  # https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlesssimpletable
+
+  # DynamoDB table to store item: {id: &lt;ID&gt;, name: &lt;NAME&gt;}
+  # SampleTable:
+  #   Type: AWS::Serverless::SimpleTable
+  #   Properties:
+  #     PrimaryKey:
+  #       Name: id
+  #       Type: String
+  #     ProvisionedThroughput:
+  #       ReadCapacityUnits: 2
+  #       WriteCapacityUnits: 2
+
+# Outputs:
+#   WebEndpoint:
+#     Description: "API Gateway endpoint URL for Prod stage"
+#     Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/"
+
+Outputs:
+  ApiUrl:
+    Description:
+      Invoke URL for your API. Clicking this link will perform a GET request
+      on the root resource of your API.
+    Value:
+      Fn::Join:
+        - ""
+        - - https://
+          - Ref: ApiGatewayApi
+          - ".execute-api."
+          - Ref: AWS::Region
+          - ".amazonaws.com/prod/"
