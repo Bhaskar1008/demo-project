@@ -2,11 +2,9 @@
 const { 
     v4: uuidv4,
   } = require('uuid');
-
-//   const bcrypt = require('bcrypt');
+  
 const BaseManager = require('./base.manager');
 const ValidationError = require('../exception/validation.error');
-const InternalError = require('../exception/internal.error');
 const NotFound = require('../exception/not-found.error');
 const customer_repository = require('../repository/customer.repository.js');
 const SCHEMA = require('../constant/schema');
@@ -39,38 +37,9 @@ class Customer extends BaseManager {
         }
     }
 
-    generateUUID(){
-        return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace( /[xy]/g , function(c) {
-            var rnd = Math.random()*16 |0, v = c === 'x' ? rnd : (rnd&0x3|0x8) ;
-            return v.toString(16);
-        });
-    }
-    
-    generatePassword(str) {
-        // return str;
+    async addNewCustomer() {
         try {
-            if(str) {
-                // error
-                // const salt =  bcrypt.genSaltSync(10);
-                // return bcrypt.hashSync(str, salt);    
-                return str;
-            }
-            return undefined;
-            // return new NotFound(MSG.NOT_FOUND, 'Not Found');
-
-        } catch (err) {
-            throw new InternalError(MSG.INTERNAL_ERROR, 'Password Hash Not Generated');
-        }
-    }
-
-    async addNewCustomer(req, res) {
-        try {
-            
-            // const hash_pass = this.generatePassword(req.body.password);
-            // if(typeof hash_pass != "string") {
-            //     return hash_pass;
-            // }
-
+            // const sanitize_data = req.body;
             const sanitize_data = {
                 ID: this.generateUUID(),
                 UserName: req.body.username ?? undefined,
@@ -89,7 +58,6 @@ class Customer extends BaseManager {
                 Type: req.body.type ?? ""
             };
             const validationResult = this.validate(SCHEMA.ADD_CUSTOMER, sanitize_data);
-            
             if(validationResult.valid) {
                 const response = await this.CustomerRepository.addCustomer(sanitize_data);
                 const RespData = {

@@ -23,6 +23,8 @@ app.get('/customer/:id?', demoProjectApi.getCustomerList);
 app.post('/updateCustomer', demoProjectApi.updateCustomerDetail );
 app.post('/AddCustomer', demoProjectApi.addNewCustomer);
 app.post('/validateLogin', demoProjectApi.validateLogin );
+app.post('/addVehicle', demoProjectApi.addNewVehicle);
+
 
 const server = awsServerlessExpress.createServer(app);
 exports.handle = (event, context) => awsServerlessExpress.proxy(server, event, context);
