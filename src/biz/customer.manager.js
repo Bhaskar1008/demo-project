@@ -2,9 +2,11 @@
 const { 
     v4: uuidv4,
   } = require('uuid');
-  
+
+//   const bcrypt = require('bcrypt');
 const BaseManager = require('./base.manager');
 const ValidationError = require('../exception/validation.error');
+const InternalError = require('../exception/internal.error');
 const NotFound = require('../exception/not-found.error');
 const customer_repository = require('../repository/customer.repository.js');
 const SCHEMA = require('../constant/schema');
@@ -37,9 +39,38 @@ class Customer extends BaseManager {
         }
     }
 
-    async addNewCustomer() {
+    generateUUID(){
+        return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace( /[xy]/g , function(c) {
+            var rnd = Math.random()*16 |0, v = c === 'x' ? rnd : (rnd&0x3|0x8) ;
+            return v.toString(16);
+        });
+    }
+    
+    generatePassword(str) {
+        // return str;
         try {
-            // const sanitize_data = req.body;
+            if(str) {
+                // error
+                // const salt =  bcrypt.genSaltSync(10);
+                // return bcrypt.hashSync(str, salt);    
+                return str;
+            }
+            return undefined;
+            // return new NotFound(MSG.NOT_FOUND, 'Not Found');
+
+        } catch (err) {
+            throw new InternalError(MSG.INTERNAL_ERROR, 'Password Hash Not Generated');
+        }
+    }
+
+    async addNewCustomer(req, res) {
+        try {
+            
+            // const hash_pass = this.generatePassword(req.body.password);
+            // if(typeof hash_pass != "string") {
+            //     return hash_pass;
+            // }
+
             const sanitize_data = {
                 ID: this.generateUUID(),
                 UserName: req.body.username ?? undefined,
@@ -58,6 +89,7 @@ class Customer extends BaseManager {
                 Type: req.body.type ?? ""
             };
             const validationResult = this.validate(SCHEMA.ADD_CUSTOMER, sanitize_data);
+            
             if(validationResult.valid) {
                 const response = await this.CustomerRepository.addCustomer(sanitize_data);
                 const RespData = {
@@ -89,8 +121,8 @@ class Customer extends BaseManager {
             if(validationResult.valid) {
                 const passwordItem = await this.CustomerRepository.validateUser(sanitize_data);
 
-                const password = passwordItem.Items?.at(0).Password;
-
+                // const password = passwordItem.Items?.at(0).Password;
+                const password = passwordItem;
                 const RespData = {
                     code: 200,
                     status: "Success",
@@ -109,7 +141,7 @@ class Customer extends BaseManager {
     }
 
     sanitizeArray(data) {
-        return (typeof data === "object" ? data : (typeof data === "string" ? JSON.pdatarse(data) : undefined));
+        return (typeof data === "object" ? data : (typeof data === "string" ? Object.entries(JSON.pdatarse(data)) : undefined));
     }
 
     async updateCustomerDetail(req, res) {
@@ -127,10 +159,10 @@ class Customer extends BaseManager {
                 LocationName: req.body.location_name ?? undefined,
                 Isactive: true,
                 
-                vehicle_id: this.sanitizeArray(req.body.vehicle_id),
-                loan_id: this.sanitizeArray(req.body.loan_id),
-                whishlist_id: this.sanitizeArray(req.body.whishlist_id),
-                purchased_accessories_id: this.sanitizeArray(req.body.purchased_accessories_id),
+                VehicleID: this.sanitizeArray(req.body.vehicle_id),
+                LoanID: this.sanitizeArray(req.body.loan_id),
+                WhishlistID: this.sanitizeArray(req.body.whishlist_id),
+                PurchasedAccessoriesID: this.sanitizeArray(req.body.purchased_accessories_id),
                 
                 LoanAgreementtemplate: req.body.loan_agreement_template ?? undefined,
                 // CreatedAt: new Date().toLocaleString(),

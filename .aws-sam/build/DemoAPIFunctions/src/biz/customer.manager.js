@@ -141,7 +141,11 @@ class Customer extends BaseManager {
     }
 
     sanitizeArray(data) {
-        return (typeof data === "object" ? data : (typeof data === "string" ? JSON.pdatarse(data) : undefined));
+        try{
+            return (typeof data === "object" ? data : (typeof data === "string" ? JSON.parse(JSON.stringify(data)) : undefined));
+        }catch(err) {
+            throw new InternalError(MSG.INTERNAL_ERROR, `Provide Proper Data ${err.message} -${data}-`);
+        }
     }
 
     async updateCustomerDetail(req, res) {
@@ -159,16 +163,16 @@ class Customer extends BaseManager {
                 LocationName: req.body.location_name ?? undefined,
                 Isactive: true,
                 
-                vehicle_id: this.sanitizeArray(req.body.vehicle_id),
-                loan_id: this.sanitizeArray(req.body.loan_id),
-                whishlist_id: this.sanitizeArray(req.body.whishlist_id),
-                purchased_accessories_id: this.sanitizeArray(req.body.purchased_accessories_id),
+                VehicleID: this.sanitizeArray(req.body.vehicle_id),
+                LoanID: this.sanitizeArray(req.body.loan_id),
+                WhishlistID: this.sanitizeArray(req.body.whishlist_id),
+                PurchasedAccessoriesID: this.sanitizeArray(req.body.purchased_accessories_id),
                 
                 LoanAgreementtemplate: req.body.loan_agreement_template ?? undefined,
                 // CreatedAt: new Date().toLocaleString(),
                 Type: req.body.type ?? undefined
             }
-
+            // return sanitize_data;
             const validationResult = this.validate(SCHEMA.UPDATE_CUSTOMER, sanitize_data);
             if(validationResult.valid) {
                 const updateRes = await this.CustomerRepository.updateCustomer(sanitize_data, req.body.id);
