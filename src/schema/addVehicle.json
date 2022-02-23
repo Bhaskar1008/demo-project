@@ -6,71 +6,71 @@
     "additionalProperties": true,
     "required": [
         "id",
-        "vehicle Service Type",
-        "vehicle Type",
-        "Vehicle Number",
-        "Registration Place",
-        "Current location",
-        "No Of Owners"
+        "vehicle_service_type",
+        " vehicle_type",
+        "vehicle_number",
+        "registration_place",
+        "current_location",
+        "no_of_owners"
     ],
     "properties": {
         "id": {
             "type": ["string"],
             "description": "Unique ID"
         },
-        "vehicle Service Type": {
+        "vehicle_service_type": {
             "type":"string" 
         },
-        "vehicle Type": {
+        " vehicle_type": {
             "type":"string"
         },
-        "Vehicle Number": {
+        "vehicle_number": {
             "type":"string"   
         },
-        "Make": {
+        " make": {
             "type":"string"
         },
-        "Model": {
+        "model": {
             "type":"string"
         },
-        "Varient": {
+        "varient": {
            "type":"string"
         },
-        "Year": {
+        "year": {
           "type":"string",
           "format": "date"
         },
-        "Color":{
+        "color":{
             "type":"string"
         },
-        "Registration Place":{
+        "registration_place":{
             "type":"string"
         },
-        "Current location":{
+        "current_location":{
             "type":"string"
         },
-        "Fuel type":{
+        "fuel_type":{
             "type":"string"
         },
-        "Transmission type":{
+        "transmission_type":{
             "type":"string"
         },
-        "Gares":{
+        "gares":{
             "type":"string"
         },
-        "Price":{
+        "price":{
             "type":"string"
         },
-        "Vehicle Category":{
+        "vehicle_category":{
             "type":"string"
         },
-        "No Of Owners":{
+        "no_of_owners":{
             "type":"number"
         },
-        "Engine Capcity CC":{
+        "engine_capcity_cc":{
             "type":"string"
         },
-        "Vehicle Full Details": {
+        "vehicle_full_details": {
             "type": [
                 "array"
             ],
@@ -79,7 +79,7 @@
             },
             "description": "Vehicle  Details"
         },
-        "Vehicle Image ID": {
+        "vehicle_image_id": {
             "type": [
                 "array"
             ],
@@ -93,7 +93,7 @@
             "format": "date",
             "description": "Created At Date"
         },
-        "CreatedBy": {
+        "createdby": {
             "type": "string"
         }
     }

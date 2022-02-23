@@ -19,6 +19,7 @@ class Customer extends BaseManager {
 
     async getCustomerList() {
         // return {test: "abcd unique", return_data: customer_repository()};
+        console.log('log1')
         
         try {
             const response = await this.CustomerRepository.CustomerList();
@@ -42,7 +43,7 @@ class Customer extends BaseManager {
                 username: req.body.username ?? "",
                 emailid: req.body.emailid ?? "",
                 contact_number: req.body.contact_number ? parseInt(req.body.contact_number) : 0000000000,
-                password: req.body.password ? bcrypt.hash(req.body.password, saltRounds) : "",
+                // password: req.body.password ? bcrypt.hash(req.body.password, saltRounds) : "",
                 location_name: req.body.location_name ?? "",
                 is_active: req.body.is_active ?? 0,
                 vehicle_id: req.body.vehicle_id ? JSON.parse(req.body.vehicle_id) : [],
