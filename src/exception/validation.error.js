@@ -6,11 +6,12 @@ class ValidationError extends Error {
         super(message);
         this.name = this.constructor.name;
         this.errors = errors;
-        this.status = status || 400;
+        this.code = status || 400;
+        this.status = 'Failed';
     }
 
     statusCode() {
-        return this.status;
+        return this.code;
     }
 }
 
