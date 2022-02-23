@@ -21,6 +21,7 @@ const {
 
 app.get('/customer', demoProjectApi.getCustomerList);
 app.post('/AddCustomer', demoProjectApi.addNewCustomer);
+app.post('/addVehicle', demoProjectApi.addNewVehicle);
 
 
 const server = awsServerlessExpress.createServer(app);
