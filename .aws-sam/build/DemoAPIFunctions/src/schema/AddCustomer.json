@@ -5,18 +5,18 @@
     "type": "object",
     "additionalProperties": true,
     "required": [
-        "id",
-        "username",
-        "emailid",
-        "contact_number",
-        "password"
+        "ID",
+        "UserName",
+        "EmailID",
+        "ContactNumber",
+        "Password"
     ],
     "properties": {
-        "id": {
+        "ID": {
             "type": ["string"],
             "description": "Unique ID"
         },
-        "username": {
+        "UserName": {
             "type": [
                 "string"
             ],
@@ -24,7 +24,7 @@
             "maxLength": 50,
             "description": "User Name"
         },
-        "emailid": {
+        "EmailID": {
             "type": [
                 "string"
             ],
@@ -32,21 +32,21 @@
             "maxLength": 50,
             "description": "User Email id"
         },
-        "contact_number": {
+        "ContactNumber": {
             "type": [
                 "integer"
             ],
             "maxLength": 10,
             "description": "Contact Number"
         },
-        "password": {
+        "Password": {
             "type": [
                 "string"
             ],
             "maxLength": 50,
             "description": "Password"
         },
-        "location_name": {
+        "LocationName": {
             "type": [
                 "string"
             ],
@@ -54,14 +54,14 @@
             "maxLength": 100,
             "description": "Location Name"
         },
-        "is_active": {
+        "Isactive": {
             "type": [
-                "integer"
+                "boolean"
             ],
             "maxLength": 1,
             "description": "Is Active"
         },
-        "vehicle_id": {
+        "VehicleID": {
             "type": [
                 "array"
             ],
@@ -70,7 +70,7 @@
             },
             "description": "Vehicle Id List"
         },
-        "loan_id": {
+        "LoanID": {
             "type": [
                 "array"
             ],
@@ -79,7 +79,7 @@
             },
             "description": "Loan Id List"
         },
-        "whishlist_id": {
+        "WhishlistID": {
             "type": [
                 "array"
             ],
@@ -88,7 +88,7 @@
             },
             "description": "Whislist Id List"
         },
-        "purchased_accessories_id": {
+        "PurchasedAccessoriesID": {
             "type": [
                 "array"
             ],
@@ -97,16 +97,16 @@
             },
             "description": "Purchase Accessories Id List"
         },
-        "loan_agreement_template": {
+        "LoanAgreementtemplate": {
             "type": "string",
             "description": "Loan Agreement Image"
         },
-        "createdat": {
+        "CreatedAt": {
             "type": "string",
-            "format": "date",
+            
             "description": "Created At Date"
         },
-        "type": {
+        "Type": {
             "type": "string",
             "description": "Type"
         }

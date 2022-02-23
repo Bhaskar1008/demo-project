@@ -19,9 +19,10 @@ const {
 } = require("./controller/index.js");
 
 
-app.get('/customer', demoProjectApi.getCustomerList);
+app.get('/customer/:id?', demoProjectApi.getCustomerList);
+app.post('/updateCustomer', demoProjectApi.updateCustomerDetail );
 app.post('/AddCustomer', demoProjectApi.addNewCustomer);
-
+app.post('/validateLogin', demoProjectApi.validateLogin );
 
 const server = awsServerlessExpress.createServer(app);
 exports.handle = (event, context) => awsServerlessExpress.proxy(server, event, context);

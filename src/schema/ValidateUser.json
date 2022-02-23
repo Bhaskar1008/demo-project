@@ -1,0 +1,26 @@
+{
+    "id": "/ValidateUser",
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "Validate User Credential",
+    "type": "object",
+    "additionalProperties": true,
+    "required": [
+        "email",
+        "password"
+    ],
+    "properties": {
+        "email": {
+            "type": [
+                "string"
+            ],
+            "format": "email",
+            "description": "Username"
+        },
+        "password": {
+            "type": [
+                "string"
+            ],
+            "description": "Password"
+        }
+    }
+}

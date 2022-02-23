@@ -21,7 +21,7 @@ class demoProjectApi extends base_controller {
     async getCustomerList(req, res) {
         try{
             console.log('Getting all customer list');
-            const getCustomerList = await this.customer.getCustomerList(req.body);
+            const getCustomerList = await this.customer.getCustomerList(req);
             this.ok(res, getCustomerList)
         } catch (err) {
             
@@ -34,6 +34,28 @@ class demoProjectApi extends base_controller {
             console.log("New Customer Data..");
             const addCustomerRes = await this.customer.addNewCustomer(req, res);
             this.ok(res, addCustomerRes);
+        } catch (err) {
+            this.error(res, err);
+        }
+    }
+
+    async validateLogin(req, res) {
+        try {
+            console.log('Validating Login');
+            const authenticated = await this.customer.authenticateUser(req, res);
+            // authenticated = {test: "abcd"}
+            this.ok(res, authenticated);
+        } catch (err) {
+            this.error(res, err);
+        }
+    }
+
+    async updateCustomerDetail(req, res) {
+        try {
+            console.log('Updating Customer Details');
+            const updateRes = await this.customer.updateCustomerDetail(req, res);
+            // authenticated = {test: "abcd"}
+            this.ok(res, authenticated);
         } catch (err) {
             this.error(res, err);
         }

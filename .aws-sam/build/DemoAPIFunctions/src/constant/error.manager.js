@@ -1,4 +1,5 @@
 'use strict';
+const custom_err_list = require('../exception/custom-exception-list.js');
 
 class ErrorManager {
 
@@ -17,14 +18,14 @@ class ErrorManager {
         const result = {
             message: msg.message || msg
         };
-        const custom_err_list = [
-            'BadRequestError', 
-            'DuplicateEntityError', 
-            'InternalError', 
-            'NotFound', 
-            'RuleViolationError', 
-            'ValidationError'
-        ];
+        // const custom_err_list = [
+        //     'BadRequestError', 
+        //     'DuplicateEntityError', 
+        //     'InternalError', 
+        //     'NotFound', 
+        //     'RuleViolationError', 
+        //     'ValidationError'
+        // ];
 
         if (typeof msg == 'object' && custom_err_list.includes(msg.name) && Object.keys(msg.errors).length > 0) {
 
