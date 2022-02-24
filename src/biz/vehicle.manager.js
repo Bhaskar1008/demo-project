@@ -19,10 +19,9 @@ class Vehicle extends BaseManager {
     
     async addNewVehicle(req,res) {
         try {
-            // return req.body
-            // const sanitize_data = req.body;
+        // return  req.body;
             const sanitize_data = {
-                id:"10",  
+                ID:this.generateUUID(),  
                 VehicleServiceType: req.body.VehicleServiceType ?? "",
                 VehicleType: req.body.VehicleType ?? "",
                 VehicleNumber: req.body.VehicleNumber ?? "" ,
@@ -45,22 +44,32 @@ class Vehicle extends BaseManager {
                 CreatedAt: req.body.CreatedAt ?? "",
                 CreatedBy: req.body.CreatedBy ?? ""
             };
+            // return sanitize_data
             const validationResult = this.validate(SCHEMA.ADD_Vehical, sanitize_data);
             if(validationResult.valid) {
-                const response = await this.VehicleRepository.addVehicle(req.body);
+                const response = await this.VehicleRepository.addVehicle(sanitize_data);
+                // return {response:response}
                 const RespData = {
-                    status: 200,
-                    msg: "Success",
+                    code: 200,
+                    status: "Success",
                     data: response
                 }
+                console.log("log1")
                 return RespData;
             }
+            console.log("testing")
             
             throw new ValidationError(MSG.VALIDATION_ERROR, validationResult.errors);
         }catch(err) {
-            // 
+            console.log("log2")
             throw err;
         }
+    }
+    generateUUID(){
+        return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace( /[xy]/g , function(c) {
+            var rnd = Math.random()*16 |0, v = c === 'x' ? rnd : (rnd&0x3|0x8) ;
+            return v.toString(16);
+        });
     }
 }
 module.exports = Vehicle;

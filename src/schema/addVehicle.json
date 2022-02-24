@@ -5,7 +5,7 @@
     "type": "object",
     "additionalProperties": true,
     "required": [
-        "id",
+        "ID",
         "VehicleServiceType",
         "VehicleType",
         "VehicleNumber",
@@ -14,8 +14,8 @@
         "NoOfOwners"
     ],
     "properties": {
-        "id": {
-            "type": ["string"],
+        "ID": {
+            "type": "string",
             "description": "Unique ID"
         },
         "VehicleServiceType": {
