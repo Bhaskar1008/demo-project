@@ -17,13 +17,13 @@ class Vehicle extends BaseManager {
         this.VehicleRepository = new vehicle_repository();
     }
     
-    async addNewVehicle() {
+    async addNewVehicle(req,res) {
         try {
-            // const sanitize_data = req.body;
+        // return  req.body;
             const sanitize_data = {
-                id: generateUUID(),  
-                vehicleServiceType: req.body.vehicleServiceType ?? "",
-                vehicleType: req.body.vehicleType ?? "",
+                ID:this.generateUUID(),  
+                VehicleServiceType: req.body.VehicleServiceType ?? "",
+                VehicleType: req.body.VehicleType ?? "",
                 VehicleNumber: req.body.VehicleNumber ?? "" ,
                 Make: req.body.Make ?? "",
                 Model: req.body.Model ?? "",
@@ -40,24 +40,28 @@ class Vehicle extends BaseManager {
                 NoOfOwners: req.body.NoOfOwners ?? "",
                 EngineCapcityCC: req.body.EngineCapcityCC ?? "",
                 VehicleFullDetails: req.body.VehicleFullDetails ? JSON.parse(req.body.VehicleFullDetails) : [],
-                VehicleImageID: req.body.VehicleImageID ? JSON.parse(req.body.VehicleImageID) : [],
-                createdat: req.body.createdat ?? "",
+                VehicleImage_ID: req.body.VehicleImage_ID ? JSON.parse(req.body.VehicleImage_ID) : [],
+                CreatedAt: req.body.CreatedAt ?? "",
                 CreatedBy: req.body.CreatedBy ?? ""
             };
+            // return sanitize_data
             const validationResult = this.validate(SCHEMA.ADD_Vehical, sanitize_data);
             if(validationResult.valid) {
-                const response = await this.VehicleRepository.addVehicle(req.body);
+                const response = await this.VehicleRepository.addVehicle(sanitize_data);
+                // return {response:response}
                 const RespData = {
-                    status: 200,
-                    msg: "Success",
+                    code: 200,
+                    status: "Success",
                     data: response
                 }
+                console.log("log1")
                 return RespData;
             }
+            console.log("testing")
             
             throw new ValidationError(MSG.VALIDATION_ERROR, validationResult.errors);
         }catch(err) {
-            // 
+            console.log("log2")
             throw err;
         }
     }

@@ -51,6 +51,8 @@ app.post('/test_api', base64_upload.single('test_file'), function(req, res){
     }
     res.send(req.body);
 });
+app.post('/addVehicle', demoProjectApi.addNewVehicle);
+
 
 const server = awsServerlessExpress.createServer(app);
 exports.handle = (event, context) => awsServerlessExpress.proxy(server, event, context);
