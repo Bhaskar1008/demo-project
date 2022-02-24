@@ -7,7 +7,7 @@ class InternalError extends Error {
         this.name = this.constructor.name;
         this.errors = errors;
         this.code = 500;
-        this.status = "Failed";
+        this.status = 'Failed';
     }
 
     statusCode() {

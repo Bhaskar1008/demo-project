@@ -49,8 +49,10 @@ class BaseManager {
         let formattedResult = {};
         formattedResult.valid = validationResult.valid;
         formattedResult.errors = {};
+        var required_fields = [];
         for (let i = 0; i < validationResult.errors.length; i++) {
             let error = validationResult.errors[i];
+            if(error.name == 'required') required_fields.push(error.argument);
             if (error.property.startsWith('instance.')) {
                 const field = error.property.replace('instance.', '');
                 if (!formattedResult.errors[field]) {
@@ -63,6 +65,9 @@ class BaseManager {
                 }
                 formattedResult.errors[error.argument].push(error.message);
             }
+        }
+        if(required_fields.length) {
+            formattedResult.errors.Error_msg = `${required_fields.join(',')} ${required_fields.length > 1 ? 'are' : 'is'} required`;
         }
         return formattedResult;
     }

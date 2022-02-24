@@ -17,32 +17,33 @@ class Vehicle extends BaseManager {
         this.VehicleRepository = new vehicle_repository();
     }
     
-    async addNewVehicle() {
+    async addNewVehicle(req,res) {
         try {
+            // return req.body
             // const sanitize_data = req.body;
             const sanitize_data = {
-                id: generateUUID(),  
-                vehicle_service_type: req.body.vehicle_service_type ?? "",
-                vehicle_type: req.body.vehicle_type ?? "",
-                vehicle_number: req.body.vehicle_number ?? "" ,
-                make: req.body.make ?? "",
-                model: req.body.model ?? "",
-                varient: req.body.varient ?? "",
-                year: req.body.year ?? "",
-                color: req.body.color ?? "",
-                registration_place: req.body.registration_place ?? "",
-                current_location: req.body.current_location ?? "",
-                fuel_type: req.body.fuel_type ?? "",
-                transmission_type: req.body.transmission_type ?? "",
-                gares: req.body.gares ?? "",
-                price: req.body.price ?? "",
-                vehicle_category: req.body.vehicle_category ?? "",
-                no_of_owners: req.body.no_of_owners ?? "",
-                engine_capcity_cc: req.body.engine_capcity_cc ?? "",
-                vehicle_full_details: req.body.vehicle_full_details ? JSON.parse(req.body.vehicle_full_details) : [],
-                vehicle_image_id: req.body.vehicle_image_id ? JSON.parse(req.body.vehicle_image_id) : [],
-                createdat: req.body.createdat ?? "",
-                createdby: req.body.createdby ?? ""
+                id:"10",  
+                VehicleServiceType: req.body.VehicleServiceType ?? "",
+                VehicleType: req.body.VehicleType ?? "",
+                VehicleNumber: req.body.VehicleNumber ?? "" ,
+                Make: req.body.Make ?? "",
+                Model: req.body.Model ?? "",
+                Varient: req.body.Varient ?? "",
+                Year: req.body.Year ?? "",
+                Color: req.body.Color ?? "",
+                RegistrationPlace: req.body.RegistrationPlace ?? "",
+                Currentlocation: req.body.Currentlocation ?? "",
+                Fueltype: req.body.Fueltype ?? "",
+                Transmissiontype: req.body.Transmissiontype ?? "",
+                Gares: req.body.Gares ?? "",
+                Price: req.body.Price ?? "",
+                VehicleCategory: req.body.VehicleCategory ?? "",
+                NoOfOwners: req.body.NoOfOwners ?? "",
+                EngineCapcityCC: req.body.EngineCapcityCC ?? "",
+                VehicleFullDetails: req.body.VehicleFullDetails ? JSON.parse(req.body.VehicleFullDetails) : [],
+                VehicleImage_ID: req.body.VehicleImage_ID ? JSON.parse(req.body.VehicleImage_ID) : [],
+                CreatedAt: req.body.CreatedAt ?? "",
+                CreatedBy: req.body.CreatedBy ?? ""
             };
             const validationResult = this.validate(SCHEMA.ADD_Vehical, sanitize_data);
             if(validationResult.valid) {
@@ -60,12 +61,6 @@ class Vehicle extends BaseManager {
             // 
             throw err;
         }
-    }
-    generateUUID(){
-        return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace( /[xy]/g , function(c) {
-            var rnd = Math.random()*16 |0, v = c === 'x' ? rnd : (rnd&0x3|0x8) ;
-            return v.toString(16);
-        });
     }
 }
 module.exports = Vehicle;
