@@ -1,6 +1,5 @@
 'use strict';
 const custom_err_list = require('../exception/custom-exception-list.js');
-
 class ErrorManager {
 
     constructor() {

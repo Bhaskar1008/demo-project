@@ -52,7 +52,6 @@ class BaseManager {
         var required_fields = [];
         for (let i = 0; i < validationResult.errors.length; i++) {
             let error = validationResult.errors[i];
-            // console.log(Object.keys(error));
             if(error.name == 'required') required_fields.push(error.argument);
             if (error.property.startsWith('instance.')) {
                 const field = error.property.replace('instance.', '');

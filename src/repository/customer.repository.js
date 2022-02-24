@@ -81,6 +81,14 @@ class CustomerRepository{
                 }
             });
 
+            // const params = {
+            //     TableName: TABLE.TABLE_CUSTOMER,
+            //     FilterExpression = " ID = :id ",
+            //     ExpressionAttributeValues = {
+            //         ":id": req.params.id
+            //     }
+            // }
+
             const params = {
                 TableName: TABLE.TABLE_CUSTOMER,
                 Key: {

@@ -141,11 +141,7 @@ class Customer extends BaseManager {
     }
 
     sanitizeArray(data) {
-        try{
-            return (typeof data === "object" ? data : (typeof data === "string" ? JSON.parse(JSON.stringify(data)) : undefined));
-        }catch(err) {
-            throw new InternalError(MSG.INTERNAL_ERROR, `Provide Proper Data ${err.message} -${data}-`);
-        }
+        return (typeof data === "object" ? data : (typeof data === "string" ? Object.entries(JSON.pdatarse(data)) : undefined));
     }
 
     async updateCustomerDetail(req, res) {
@@ -172,7 +168,7 @@ class Customer extends BaseManager {
                 // CreatedAt: new Date().toLocaleString(),
                 Type: req.body.type ?? undefined
             }
-            // return sanitize_data;
+
             const validationResult = this.validate(SCHEMA.UPDATE_CUSTOMER, sanitize_data);
             if(validationResult.valid) {
                 const updateRes = await this.CustomerRepository.updateCustomer(sanitize_data, req.body.id);

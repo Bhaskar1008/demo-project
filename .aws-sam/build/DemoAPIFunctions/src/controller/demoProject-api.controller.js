@@ -3,7 +3,7 @@
 const base_controller = require('./base.controller')
 
 const Customer = require('../biz/customer.manager');
-const vehical = require('../biz/vehical.manager');
+const vehical = require('../biz/vehicle.manager');
 const loan = require('../biz/loan.manager');
 const accessories = require('../biz/accessories.manager');
 
@@ -13,7 +13,7 @@ class demoProjectApi extends base_controller {
     constructor() {
         super();
         this.customer = new Customer();
-        // this.vehical = new vehical();
+        this.vehical = new vehical();
         // this.loan = new loan();
         // this.accessories = new accessories();
     }
@@ -38,6 +38,16 @@ class demoProjectApi extends base_controller {
             this.error(res, err);
         }
     }
+    
+    async addNewVehicle(req, res) {
+        try {
+            console.log("New Vehicle Data..");
+            const addVehicleRes = await this.vehical.addNewVehicle(req, res);
+            this.ok(res, addVehicleRes);
+        } catch (err) {
+            this.error(res, err);
+        }
+    }
 
     async validateLogin(req, res) {
         try {
@@ -55,10 +65,11 @@ class demoProjectApi extends base_controller {
             console.log('Updating Customer Details');
             const updateRes = await this.customer.updateCustomerDetail(req, res);
             // authenticated = {test: "abcd"}
-            this.ok(res, updateRes);
+            this.ok(res, authenticated);
         } catch (err) {
             this.error(res, err);
         }
     }
+
 }
 module.exports = demoProjectApi;
