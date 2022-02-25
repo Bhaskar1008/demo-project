@@ -16,6 +16,9 @@ class Vehicle extends BaseManager {
         super();
         this.VehicleRepository = new vehicle_repository();
     }
+    sanitizeArray(data) {
+        return (typeof data === "object" ? data : (typeof data === "string" ? Object.entries(JSON.parse(JSON.stringify(data))) : undefined));
+        }
     
     async addNewVehicle(req,res) {
         try {
@@ -39,8 +42,8 @@ class Vehicle extends BaseManager {
                 VehicleCategory: req.body.VehicleCategory ?? "",
                 NoOfOwners: req.body.NoOfOwners ?? "",
                 EngineCapcityCC: req.body.EngineCapcityCC ?? "",
-                VehicleFullDetails: req.body.VehicleFullDetails ? JSON.parse(req.body.VehicleFullDetails) : [],
-                VehicleImage_ID: req.body.VehicleImage_ID ? JSON.parse(req.body.VehicleImage_ID) : [],
+                VehicleFullDetails:this.sanitizeArray(req.body.VehicleFullDetails),
+                VehicleImage_ID:this.sanitizeArray(req.body.VehicleImage_ID),
                 CreatedAt: req.body.CreatedAt ?? "",
                 CreatedBy: req.body.CreatedBy ?? ""
             };
