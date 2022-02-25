@@ -121,8 +121,8 @@ class Customer extends BaseManager {
             if(validationResult.valid) {
                 const passwordItem = await this.CustomerRepository.validateUser(sanitize_data);
 
-                // const password = passwordItem.Items?.at(0).Password;
-                const password = passwordItem;
+                const password = passwordItem.Items?.at(0).Password;
+
                 const RespData = {
                     code: 200,
                     status: "Success",

@@ -8,7 +8,7 @@ require("dotenv").config();
 const multer = require('multer');
 const path = require('path');
 const storage = multer.memoryStorage();
-const img_validate_ext = require('constant/image_ext_list.js');
+const img_validate_ext = require('./constant/image_ext_list.js');
 
 const base64_upload = multer({ 
     limits: { fileSize: 2 * 1024 }, 
