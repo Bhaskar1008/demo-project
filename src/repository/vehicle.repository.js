@@ -1,20 +1,88 @@
 const { AWS, documentClient } = require('../services/aws.service');
 const TABLE = require('../constant/table');
+const InternalError = require('../exception/internal.error');
+const msg = require('../constant/msg');
 
 
 class VehicleRepository{
     constructor(){}
 
-    async addVehicle(rquest) {
-        console.log(`New Vehicle Adding: ${JSON.stringify(rquest)}`);
+    async addVehicle(request) {
+        console.log(`New Vehicle Adding: ${JSON.stringify(request)}`);
         const params = {
-            TableName: "Vehicle",
-            Item: rquest
+            TableName: TABLE.TABLE_VEHICLE,
+            Item: request
         };
         const data = await documentClient.put(params).promise();
         console.log('Inserted New Vehicle: ', data);
         if (data) return data;
         return null;
+    }
+
+    // function to upload images of vehicle
+    async vehicleImageUpload(request) {
+        try{
+            request.forEach(async (obj) => {
+                let params = {
+                    TableName: TABLE.TABLE_VEHICLE_IMAGES,
+                    Item: obj
+                };
+                let data = await documentClient.put(params).promise();
+            });
+            return {};
+            
+        } catch(err) {
+            throw new InternalError(msg.INTERNAL_ERROR, err.message);
+        }
+        
+    }
+
+    async updateVehicleDetails(data, id) {
+        try{
+            var filtered_data = {};
+            var expression_list = [];
+            var expression_name = {};
+            var expression_value = {};
+            Object.entries(data).map(([key,value], index) => {
+                if(value) {
+                    filtered_data[key] = value;
+                    expression_list.push(`#KEY_${index} = :VALUE_${index}`);
+                    expression_name[`#KEY_${index}`] = key;
+                    expression_value[`:VALUE_${index}`] = value;
+                }
+            });
+
+            const getSortKey = {
+                TableName: TABLE.TABLE_VEHICLE,
+                ProjectionExpression: ['CreatedAt'],
+                FilterExpression : " ID = :id ",
+                ExpressionAttributeValues : {
+                    ":id": id
+                }
+            }
+            const CreatedAt_VALUE = await documentClient.scan(getSortKey).promise();
+            // console.log(typeof CreatedAt_VALUE.Items.at(0))
+            const params = {
+                TableName: TABLE.TABLE_VEHICLE,
+                Key: {
+                    "ID": id,
+                    "CreatedAt" : CreatedAt_VALUE.Items[0].CreatedAt || ""
+                },
+                UpdateExpression: `SET ${expression_list.join(', ')} `,
+                ExpressionAttributeNames: expression_name,
+                ExpressionAttributeValues: expression_value,
+                ReturnValues: "UPDATED_NEW"
+            };
+            // return params;
+            const updateRes = await documentClient.update(params).promise();
+
+            if(updateRes) return updateRes;
+            return null;
+        } catch(err) {
+            // console.log('Error Raised Here', err.message);
+            throw new InternalError(MSG.INTERNAL_ERROR, err.message);
+        }
+        
     }
 }
 

@@ -8,17 +8,17 @@ require("dotenv").config();
 const multer = require('multer');
 const path = require('path');
 const storage = multer.memoryStorage();
-const img_validate_ext = require('./constant/image_ext_list.js');
+const img_validate_ext = require('./constant/image_ext_list');
 
 const base64_upload = multer({ 
-    limits: { fileSize: 2 * 1024 }, 
+    limits: { fileSize: 2 * 1024 * 1024 }, 
     storage: storage,
     fileFilter: (req, file, cb) => {
-        if (file.mimetype == "image/png" || file.mimetype == "image/jpg" || file.mimetype == "image/jpeg") {
+        if (img_validate_ext.includes(file.mimetype)) {
           cb(null, true);
         } else {
           cb(null, false);
-          return cb(new Error('Only .png, .jpg and .jpeg format allowed!'));
+          return cb(new Error('Only .png, .jpg, .jpeg and .webp format allowed!'));
         }
       }    
  });
@@ -42,16 +42,17 @@ app.get('/customer/:id?', demoProjectApi.getCustomerList);
 app.post('/updateCustomer', demoProjectApi.updateCustomerDetail );
 app.post('/AddCustomer', demoProjectApi.addNewCustomer);
 app.post('/validateLogin', demoProjectApi.validateLogin );
-app.post('/test_api', base64_upload.single('test_file'), function(req, res){
-    console.log('Test Request');
-    if(req.file !== undefined) {
-        // file uploaded
-        console.log(req.file.buffer.toString('base64'));
+// app.post('/test_api', base64_upload.array('test_file', 10), function(req, res){
+//   res.send({body: req.body, files: req.files});
+//     // console.log('Test Request');
+//     // if(req.file !== undefined) {
+//     //     // file uploaded
+//     //     console.log(req.file.buffer.toString('base64'));
     
-    }
-    res.send(req.body);
-});
-app.post('/addVehicle', demoProjectApi.addNewVehicle);
+//     // }
+//     // res.send(req.body);
+// });
+app.post('/addVehicle', base64_upload.array('vehicle_images', 10), demoProjectApi.addNewVehicle);
 
 
 const server = awsServerlessExpress.createServer(app);

@@ -63,9 +63,9 @@ class demoProjectApi extends base_controller {
     async updateCustomerDetail(req, res) {
         try {
             console.log('Updating Customer Details');
-            const updateRes = await this.customer.updateCustomerDetail(req, res);
+            const updateRes = await this.customer.updateCustomerDetail(req.body);
             // authenticated = {test: "abcd"}
-            this.ok(res, authenticated);
+            this.ok(res, updateRes);
         } catch (err) {
             this.error(res, err);
         }

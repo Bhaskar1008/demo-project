@@ -30,7 +30,7 @@ class ErrorManager {
 
             result['code'] = msg.statusCode();
             result['status'] = msg.status;
-            result['errors'] = msg.errors.errors;
+            result['errors'] = msg.errors;
             return result;
         } 
         return result;

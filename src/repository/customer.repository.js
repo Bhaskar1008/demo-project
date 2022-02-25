@@ -81,19 +81,21 @@ class CustomerRepository{
                 }
             });
 
-            // const params = {
-            //     TableName: TABLE.TABLE_CUSTOMER,
-            //     FilterExpression = " ID = :id ",
-            //     ExpressionAttributeValues = {
-            //         ":id": req.params.id
-            //     }
-            // }
-
+            const getSortKey = {
+                TableName: TABLE.TABLE_CUSTOMER,
+                ProjectionExpression: ['CreatedAt'],
+                FilterExpression : " ID = :id ",
+                ExpressionAttributeValues : {
+                    ":id": id
+                }
+            }
+            const CreatedAt_VALUE = await documentClient.scan(getSortKey).promise();
+            // console.log(typeof CreatedAt_VALUE.Items.at(0))
             const params = {
                 TableName: TABLE.TABLE_CUSTOMER,
                 Key: {
                     "ID": id,
-                    "CreatedAt" : "2.04"
+                    "CreatedAt" : CreatedAt_VALUE.Items[0].CreatedAt || ""
                 },
                 UpdateExpression: `SET ${expression_list.join(', ')} `,
                 ExpressionAttributeNames: expression_name,
@@ -106,7 +108,7 @@ class CustomerRepository{
             if(updateRes) return updateRes;
             return null;
         } catch(err) {
-            console.log('Error Raised Here');
+            console.log('Error Raised Here', err.message);
             throw new InternalError(MSG.INTERNAL_ERROR, err);
         }
         
