@@ -22,7 +22,6 @@ class Customer extends BaseManager {
 
     async getCustomerList(req) {
         // return {test: "abcd unique", return_data: customer_repository()};
-        
         try {
             const response = await this.CustomerRepository.CustomerList(req);
             const RespData = {
@@ -32,7 +31,7 @@ class Customer extends BaseManager {
             }
             return RespData;
         }catch(err) {
-            if(custom_validation_list.includes(err.name ?? "")) {
+            if(custom_validation_list.includes(err.name || "")) {
                 return err;
             }
             return new InternalError(MSG.INTERNAL_ERROR, err);
@@ -73,20 +72,22 @@ class Customer extends BaseManager {
 
             const sanitize_data = {
                 ID: this.generateUUID(),
-                UserName: req.body.username ?? undefined,
-                EmailID: req.body.emailid ?? undefined,
+                UserName: req.body.username || undefined,
+                EmailID: req.body.emailid || undefined,
                 ContactNumber: req.body.contact_number ? parseInt(req.body.contact_number) : undefined,
                 // password: req.body.password ? bcrypt.hash(req.body.password, saltRounds) : "",
                 Password: this.generatePassword(req.body.password),
-                LocationName: req.body.location_name ?? "",
+                LocationName: req.body.location_name || "",
                 Isactive: true,
-                // vehicle_id: req.body.vehicle_id ? JSON.parse(req.body.vehicle_id) : [],
-                // loan_id: req.body.loan_id ? JSON.parse(req.body.loan_id) : [],
-                // whishlist_id: req.body.whishlist_id ? JSON.parse(req.body.whishlist_id) : [],
-                // purchased_accessories_id: req.body.purchased_accessories_id ? JSON.parse(purchased_accessories_id) : [],
-                LoanAgreementtemplate: req.body.loan_agreement_template ?? "",
+                
+                VehicleID: this.sanitizeArray(req.body.vehicle_id),
+                LoanID: this.sanitizeArray(req.body.loan_id),
+                WhishlistID: this.sanitizeArray(req.body.whishlist_id),
+                PurchasedAccessoriesID: this.sanitizeArray(req.body.purchased_accessories_id),
+
+                LoanAgreementtemplate: req.body.loan_agreement_template || "",
                 CreatedAt: new Date().toLocaleString(),
-                Type: req.body.type ?? ""
+                Type: req.body.type || ""
             };
             const validationResult = this.validate(SCHEMA.ADD_CUSTOMER, sanitize_data);
             
@@ -103,7 +104,7 @@ class Customer extends BaseManager {
             
             throw new ValidationError(MSG.VALIDATION_ERROR, validationResult.errors);
         } catch(err) {
-            if(custom_validation_list.includes(err.name ?? "")) {
+            if(custom_validation_list.includes(err.name || "")) {
                 return err;
             }
             return new InternalError(MSG.INTERNAL_ERROR, err);
@@ -121,7 +122,7 @@ class Customer extends BaseManager {
             if(validationResult.valid) {
                 const passwordItem = await this.CustomerRepository.validateUser(sanitize_data);
 
-                const password = passwordItem.Items?.at(0).Password;
+                const password = passwordItem.Items[0].Password;
 
                 const RespData = {
                     code: 200,
@@ -133,7 +134,7 @@ class Customer extends BaseManager {
             }
             throw new ValidationError(MSG.VALIDATION_ERROR, validationResult.errors);
         } catch (err) {
-            if(custom_validation_list.includes(err.name ?? "")) {
+            if(custom_validation_list.includes(err.name || "")) {
                 return err;
             }
             return new InternalError(MSG.INTERNAL_ERROR, err);
@@ -144,34 +145,34 @@ class Customer extends BaseManager {
         return (typeof data === "object" ? data : (typeof data === "string" ? Object.entries(JSON.pdatarse(data)) : undefined));
     }
 
-    async updateCustomerDetail(req, res) {
+    async updateCustomerDetail(request) {
         try {
-            if(!req.body.id) {
+            if(!request.id) {
                 throw new ValidationError(MSG.VALIDATION_ERROR, "Id is required");
                 // throw new Error('TEST','this is error');
             }
             const sanitize_data = {
-                UserName: req.body.username ?? undefined,
-                EmailID: req.body.emailid ?? undefined,
-                ContactNumber: req.body.contact_number ? parseInt(req.body.contact_number) : undefined,
-                // password: req.body.password ? bcrypt.hash(req.body.password, saltRounds) : "",
-                Password: this.generatePassword(req.body.password),
-                LocationName: req.body.location_name ?? undefined,
+                UserName: request.username || undefined,
+                EmailID: request.emailid || undefined,
+                ContactNumber: request.contact_number ? parseInt(request.contact_number) : undefined,
+                // password: request.password ? bcrypt.hash(request.password, saltRounds) : "",
+                Password: this.generatePassword(request.password),
+                LocationName: request.location_name || undefined,
                 Isactive: true,
                 
-                VehicleID: this.sanitizeArray(req.body.vehicle_id),
-                LoanID: this.sanitizeArray(req.body.loan_id),
-                WhishlistID: this.sanitizeArray(req.body.whishlist_id),
-                PurchasedAccessoriesID: this.sanitizeArray(req.body.purchased_accessories_id),
+                VehicleID: this.sanitizeArray(request.vehicle_id),
+                LoanID: this.sanitizeArray(request.loan_id),
+                WhishlistID: this.sanitizeArray(request.whishlist_id),
+                PurchasedAccessoriesID: this.sanitizeArray(request.purchased_accessories_id),
                 
-                LoanAgreementtemplate: req.body.loan_agreement_template ?? undefined,
+                LoanAgreementtemplate: request.loan_agreement_template || undefined,
                 // CreatedAt: new Date().toLocaleString(),
-                Type: req.body.type ?? undefined
+                Type: request.type || undefined
             }
 
             const validationResult = this.validate(SCHEMA.UPDATE_CUSTOMER, sanitize_data);
             if(validationResult.valid) {
-                const updateRes = await this.CustomerRepository.updateCustomer(sanitize_data, req.body.id);
+                const updateRes = await this.CustomerRepository.updateCustomer(sanitize_data, request.id);
                 const RespData = {
                     code: 200,
                     status: "Success",
@@ -182,7 +183,7 @@ class Customer extends BaseManager {
             }
             throw new ValidationError(MSG.VALIDATION_ERROR, validationResult.errors);
         } catch (err) {
-            if(custom_validation_list.includes(err.name ?? "")) {
+            if(custom_validation_list.includes(err.name || "")) {
                 return err;
             }
             return new InternalError(MSG.INTERNAL_ERROR, err);
