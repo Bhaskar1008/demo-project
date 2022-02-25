@@ -142,7 +142,7 @@ class Customer extends BaseManager {
     }
 
     sanitizeArray(data) {
-        return (typeof data === "object" ? data : (typeof data === "string" ? Object.entries(JSON.pdatarse(data)) : undefined));
+        return (typeof data === "object" ? data : (typeof data === "string" ? Object.entries(JSON.parse(JSON.stringify(data))) : undefined));
     }
 
     async updateCustomerDetail(request) {

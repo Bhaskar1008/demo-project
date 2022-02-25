@@ -8,17 +8,21 @@ require("dotenv").config();
 const multer = require('multer');
 const path = require('path');
 const storage = multer.memoryStorage();
+<<<<<<< HEAD
 const img_validate_ext = require('./constant/image_ext_list');
+=======
+const img_validate_ext = require('./constant/image_ext_list.js');
+>>>>>>> 640b4560bee3a88f2a58a10947dd6ac7e37ac989
 
 const base64_upload = multer({ 
     limits: { fileSize: 2 * 1024 * 1024 }, 
     storage: storage,
     fileFilter: (req, file, cb) => {
-        if (img_validate_ext.includes(file.mimetype)) {
+        if (file.mimetype == "image/png" || file.mimetype == "image/jpg" || file.mimetype == "image/jpeg") {
           cb(null, true);
         } else {
           cb(null, false);
-          return cb(new Error('Only .png, .jpg, .jpeg and .webp format allowed!'));
+          return cb(new Error('Only .png, .jpg and .jpeg format allowed!'));
         }
       }    
  });
