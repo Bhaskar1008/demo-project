@@ -1,9 +1,7 @@
 'use strict';
-const { 
-    v4: uuidv4,
-  } = require('uuid');
 
-  const bcrypt = require('bcryptjs');
+const utils = require('../constant/utils');
+const bcrypt = require('bcryptjs');
 const BaseManager = require('./base.manager');
 const ValidationError = require('../exception/validation.error');
 const InternalError = require('../exception/internal.error');
@@ -18,6 +16,7 @@ class Customer extends BaseManager {
     constructor(){
         super();
         this.CustomerRepository = new customer_repository();
+        this.utils = new utils();
     }
 
     async getCustomerList(req) {
@@ -38,13 +37,6 @@ class Customer extends BaseManager {
         }
     }
 
-    generateUUID(){
-        return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace( /[xy]/g , function(c) {
-            var rnd = Math.random()*16 |0, v = c === 'x' ? rnd : (rnd&0x3|0x8) ;
-            return v.toString(16);
-        });
-    }
-    
     generatePassword(str) {
         // return str;
         try {
@@ -71,7 +63,7 @@ class Customer extends BaseManager {
             // }
 
             const sanitize_data = {
-                ID: this.generateUUID(),
+                ID: this.utils.generateUUID(),
                 UserName: req.body.username || undefined,
                 EmailID: req.body.emailid || undefined,
                 ContactNumber: req.body.contact_number ? parseInt(req.body.contact_number) : undefined,
@@ -127,9 +119,9 @@ class Customer extends BaseManager {
                 const RespData = {
                     code: 200,
                     status: "Success",
-                    data: password,
+                    // data: password,
                     res: bcrypt.compareSync(sanitize_data.password, password ),
-                    sanitize_data: sanitize_data
+                    // sanitize_data: sanitize_data
                 }
                 return RespData;
             }
@@ -189,6 +181,38 @@ class Customer extends BaseManager {
             }
             return new InternalError(MSG.INTERNAL_ERROR, err);
         }
+    }
+
+    async resetPassword(req, res) {
+        try{
+            if(!req.body.EmailID || !req.body.CustomerID){
+                throw new ValidationError(MSG.VALIDATION_ERROR, "CustomerID Or EmailID is required")
+            }
+            let sanitize_data = {
+                EmailId: req.body.EmailID,
+                CustomerID: req.body.CustomerID
+            };
+
+            let otp = Math.floor(1000 + Math.random() * 9000);
+
+            const response = await this.CustomerRepository.resetPassword({...sanitize_data,otp:otp});
+            const RespData = {
+                code: 200,
+                status: "Success",
+                data: sanitize_data,
+                response: response
+            }
+            return RespData;
+
+
+        }catch(err) {
+            console.log('Error Occured In Manager');
+            if(custom_validation_list.includes(err.name || "")) {
+                return err;
+            }
+            return new InternalError(MSG.INTERNAL_ERROR, err.message);
+        }
+        
     }
 }
 module.exports = Customer;

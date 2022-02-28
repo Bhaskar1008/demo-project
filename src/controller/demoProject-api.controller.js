@@ -57,7 +57,7 @@ class demoProjectApi extends base_controller {
             // authenticated = {test: "abcd"}
             this.ok(res, updateRes);
         } catch (err) {
-            this.error(res, err);
+            this.error(res, err); 
         }
     }
 

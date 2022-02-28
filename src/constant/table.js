@@ -3,5 +3,6 @@ module.exports = {
     TABLE_VEHICLE: "Vehicle",
     TABLE_VEHICLE_IMAGES: "VehicleUploadedImages",
     TABLE_LOAN: "Loan",
-    TABLE_ACCESSORIES: "accessories"
+    TABLE_ACCESSORIES: "accessories",
+    TABLE_RESET_PASSWORD: "ResetPassword"
 }

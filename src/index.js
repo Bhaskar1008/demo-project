@@ -10,6 +10,8 @@ const path = require('path');
 const storage = multer.memoryStorage();
 const img_validate_ext = require('./constant/image_ext_list');
 
+const temp = require('../src/repository/reset_password.repository')
+
 const base64_upload = multer({ 
     limits: { fileSize: 2 * 1024 * 1024 }, 
     storage: storage,
@@ -54,6 +56,11 @@ app.post('/reset-password', demoProjectApi.resetPassword );
 // add new vehicle {contains base64 images}
 app.post('/addVehicle', base64_upload.array('vehicle_images', 10), demoProjectApi.addNewVehicle);
 
+
+app.get('/temp/:id',async (req, res) => {
+  const resp = await new temp().validateResetLimit(req.params.id);
+  res.send(resp);
+});
 
 
 const server = awsServerlessExpress.createServer(app);

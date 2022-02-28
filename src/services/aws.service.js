@@ -7,4 +7,6 @@ AWS.config.update({
 module.exports = {
     AWS: AWS,
     documentClient: new AWS.DynamoDB.DocumentClient({ apiVersion: '2012-08-10' }),
+    SNS: new AWS.SNS({ apiVersion: '2010-03-31' }),
+    STS: new AWS.STS(),
 }

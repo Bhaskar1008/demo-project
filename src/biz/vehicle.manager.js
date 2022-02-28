@@ -1,8 +1,5 @@
 'use strict';
-const { 
-    v4: uuidv4,
-  } = require('uuid');
-  
+const utils = require('../constant/utils');
 const BaseManager = require('./base.manager');
 const ValidationError = require('../exception/validation.error');
 const NotFound = require('../exception/not-found.error');
@@ -12,12 +9,14 @@ const SCHEMA = require('../constant/schema');
 const MSG = require("../constant/msg");
 const custom_validation_list = require('../exception/custom-exception-list');
 const req = require('express/lib/request');
+const InternalError = require('../exception/internal.error');
 
 class Vehicle extends BaseManager {
     constructor(){
         super();
         this.VehicleRepository = new vehicle_repository();
         this.CustomerRepository = new customer_repository();
+        this.utils = new utils();
     }
     
     sanitizeArray(data) {
@@ -33,7 +32,7 @@ class Vehicle extends BaseManager {
 
         // return  req.body;
             const sanitize_data = {
-                ID:this.generateUUID(), 
+                ID:this.utils.generateUUID(), 
                 VehicleServiceType: req.body.VehicleServiceType || "",
                 VehicleType: req.body.VehicleType || "",
                 VehicleNumber: req.body.VehicleNumber || "" ,
@@ -67,6 +66,10 @@ class Vehicle extends BaseManager {
                 }
 
                 const response = await this.VehicleRepository.addVehicle(sanitize_data);
+
+                if(response === null) {
+                    throw new InternalError(MSG.INTERNAL_ERROR, "Vehicle Add issue");
+                }
                 // let response = "test_success";
                 // return {response:response}
                 const RespData = {
@@ -83,12 +86,12 @@ class Vehicle extends BaseManager {
                     // loop through each file and call Image repos/lamda function to insert that
                     try {
                         let IMAGE_SANITIZE_DATA = {
-                            ID: this.generateUUID(),
+                            ID: this.utils.generateUUID(),
                             ImageName: element.originalname,
                             ImageFile: element.buffer.toString('base64'), // "data:image/jpeg;base64," -- removed
                             CreatedAt: new Date().toLocaleDateString(),
                             Uploadedat: new Date().toLocaleDateString(),
-                            Uploadedby: ""
+                            Uploadedby: req.body.CreatedBy || ""
                         };
 
                         let validationIMAGESCHEMA = this.validate(SCHEMA.VEHICLE_IMAGE, IMAGE_SANITIZE_DATA);
@@ -134,11 +137,11 @@ class Vehicle extends BaseManager {
             return new InternalError(MSG.INTERNAL_ERROR, err);
         }
     }
-    generateUUID(){
-        return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace( /[xy]/g , function(c) {
-            var rnd = Math.random()*16 |0, v = c === 'x' ? rnd : (rnd&0x3|0x8) ;
-            return v.toString(16);
-        });
-    }
+    // generateUUID(){
+    //     return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace( /[xy]/g , function(c) {
+    //         var rnd = Math.random()*16 |0, v = c === 'x' ? rnd : (rnd&0x3|0x8) ;
+    //         return v.toString(16);
+    //     });
+    // }
 }
 module.exports = Vehicle;

@@ -2,10 +2,16 @@ const { AWS, documentClient } = require('../services/aws.service');
 const TABLE = require('../constant/table');
 const InternalError = require('../exception/internal.error');
 const MSG = require('../constant/msg');
-
+const { TABLE_CUSTOMER } = require('../constant/table');
+// const SNSService = require('../services/sns.service');
+const { SNS } = require('../services/aws.service');
+const utils = require('../constant/utils');
 
 class CustomerRepository{
-    constructor(){}
+    constructor(){
+        // this.sns_service = new SNSService();
+        this.utils = new utils();
+    }
 
     async CustomerList(req) {
         // this will load all customer data 
@@ -82,19 +88,9 @@ class CustomerRepository{
 
     async updateCustomer(data, id) {
         try{
-            var filtered_data = {};
-            var expression_list = [];
-            var expression_name = {};
-            var expression_value = {};
-            Object.entries(data).map(([key,value], index) => {
-                if(value) {
-                    filtered_data[key] = value;
-                    expression_list.push(`#KEY_${index} = :VALUE_${index}`);
-                    expression_name[`#KEY_${index}`] = key;
-                    expression_value[`:VALUE_${index}`] = value;
-                }
-            });
-
+            
+            var { expression_list, expression_name, expression_value } = await this.utils.santize_expression_obj(data);
+            
             const getSortKey = {
                 TableName: TABLE.TABLE_CUSTOMER,
                 ProjectionExpression: ['CreatedAt'],
@@ -122,10 +118,105 @@ class CustomerRepository{
             if(updateRes) return updateRes;
             return null;
         } catch(err) {
-            console.log('Error Raised Here', err.message);
+            // console.log('Error Raised Here', err.message);
             throw new InternalError(MSG.INTERNAL_ERROR, err);
         }
         
+    }
+
+    // async santize_expression_obj(data) {
+    //     var expression_list = [];
+    //     var expression_name = {};
+    //     var expression_value = {};
+
+    //     // Object.entries(data).forEach()
+    //     await Object.entries(data).map(([key,value], index) => {
+    //         if(value) {
+    //             expression_list.push(`#KEY_${index} = :VALUE_${index}`);
+    //             expression_name[`#KEY_${index}`] = key;
+    //             expression_value[`:VALUE_${index}`] = value;
+    //         }
+    //     });
+    //     return {
+    //         expression_list: expression_list,
+    //         expression_name: expression_name,
+    //         expression_value: expression_value
+    //     }
+    // }
+
+
+    /**
+     * @param {string} table_name dynamoDB Table Name 'Customer'{default}
+     * @param {Array} projectionItemsArr Items/attributes to be return ['UserName', 'EmailID']
+     * @param {Object} conditionItemsObj Items with value for condition {ID: "001"}
+     */
+    async getCustomerDetail(table_name = TABLE.TABLE_CUSTOMER, projectionItemsArr, conditionItemsObj) {
+        var {expression_list, expression_name, expression_value} = await this.utils.santize_expression_obj(conditionItemsObj);
+        
+        // console.log(expression_list);
+        // console.log(expression_name);
+        // console.log(expression_value);
+        
+
+        const params = {
+            TableName: table_name,
+            ProjectionExpression: projectionItemsArr,
+            FilterExpression: ` ${expression_list.join(', ')} `,
+            ExpressionAttributeNames:expression_name,
+            ExpressionAttributeValues: expression_value
+        };
+        let data = await documentClient.scan(params).promise();
+
+        if(data) return data;
+        return null;
+    }
+
+    async resetPassword({EmailID, CustomerID, otp}) {
+        try{
+            let customerDetail = await this.getCustomerDetail(
+                TABLE.TABLE_CUSTOMER, 
+                ['ID', 'UserName', 'EmailID', 'ContactNumber', 'Isactive'],
+                {ID: CustomerID, EmailID: EmailID}    
+            );
+            let user_id = customerDetail.Items[0]?.ID || undefined;
+            let user_name = customerDetail.Items[0]?.UserName || undefined;
+            let user_email = customerDetail.Items[0]?.EmailID || undefined;
+            let user_contact = customerDetail.Items[0]?.ContactNumber || undefined;
+            let user_active = customerDetail.Items[0]?.Isactive || false;
+
+            if(!user_active) {
+                throw new InternalError(MSG.INTERNAL_ERROR, 'User is inactive');
+            }
+            // user_contact = '9030143660';
+            // console.log('contact', user_contact);
+            var params = {
+                Message: `Hi,${user_name}.\n OTP: ${otp}`,
+                PhoneNumber: '+91' + user_contact,
+                MessageAttributes: {
+                    'AWS.SNS.SMS.SenderID': {
+                        'DataType': 'String',
+                        'StringValue': `RESET`
+                    }
+                }
+            };
+            // console.log(params.PhoneNumber);
+
+            let tempRes = await SNS.publish(params).promise();
+            return tempRes;
+            // console.log(tempRes);
+            // return {
+            //     code: 200,
+            //     status: "Success",
+            //     data: tempRes
+            // };
+            // // this.sns_service.publish(process.env.SNS_TOPIC, 
+            // //     JSON.stringify({}))
+
+        }catch(err) {
+            // console.log('Error Occured');
+            // console.log(err);
+            throw new InternalError(MSG.INTERNAL_ERROR, err.message);
+        }
     }
 }
 

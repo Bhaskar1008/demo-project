@@ -14,7 +14,7 @@ class VehicleRepository{
             Item: request
         };
         const data = await documentClient.put(params).promise();
-        console.log('Inserted New Vehicle: ', data);
+        console.log('Inserted New Vehicle: ', data); //{}
         if (data) return data;
         return null;
     }
