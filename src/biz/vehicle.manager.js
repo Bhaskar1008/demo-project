@@ -7,6 +7,7 @@ const BaseManager = require('./base.manager');
 const ValidationError = require('../exception/validation.error');
 const NotFound = require('../exception/not-found.error');
 const vehicle_repository = require('../repository/vehicle.repository');
+const customer_repository = require('../repository/customer.repository');
 const SCHEMA = require('../constant/schema');
 const MSG = require("../constant/msg");
 const custom_validation_list = require('../exception/custom-exception-list');
@@ -16,6 +17,7 @@ class Vehicle extends BaseManager {
     constructor(){
         super();
         this.VehicleRepository = new vehicle_repository();
+        this.CustomerRepository = new customer_repository();
     }
     
     sanitizeArray(data) {
@@ -31,7 +33,7 @@ class Vehicle extends BaseManager {
 
         // return  req.body;
             const sanitize_data = {
-                ID:this.generateUUID(),  
+                ID:this.generateUUID(), 
                 VehicleServiceType: req.body.VehicleServiceType || "",
                 VehicleType: req.body.VehicleType || "",
                 VehicleNumber: req.body.VehicleNumber || "" ,
@@ -60,6 +62,10 @@ class Vehicle extends BaseManager {
             // return sanitize_data
             const validationResult = this.validate(SCHEMA.ADD_Vehical, sanitize_data);
             if(validationResult.valid) {
+                if(!await this.CustomerRepository.validCustomerId(sanitize_data.CreatedBy)) {
+                    throw new ValidationError(MSG.VALIDATION_ERROR, "Invalid Customer Id");
+                }
+
                 const response = await this.VehicleRepository.addVehicle(sanitize_data);
                 // let response = "test_success";
                 // return {response:response}

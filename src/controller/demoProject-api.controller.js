@@ -39,16 +39,6 @@ class demoProjectApi extends base_controller {
         }
     }
     
-    async addNewVehicle(req, res) {
-        try {
-            console.log("New Vehicle Data..");
-            const addVehicleRes = await this.vehical.addNewVehicle(req, res);
-            this.ok(res, addVehicleRes);
-        } catch (err) {
-            this.error(res, err);
-        }
-    }
-
     async validateLogin(req, res) {
         try {
             console.log('Validating Login');
@@ -66,6 +56,26 @@ class demoProjectApi extends base_controller {
             const updateRes = await this.customer.updateCustomerDetail(req.body);
             // authenticated = {test: "abcd"}
             this.ok(res, updateRes);
+        } catch (err) {
+            this.error(res, err);
+        }
+    }
+
+    async resetPassword(req, res) {
+        try {
+            console.log("Password Reset Request..");
+            const addVehicleRes = await this.customer.resetPassword(req, res);
+            this.ok(res, addVehicleRes);
+        } catch (err) {
+            this.error(res, err);
+        }
+    }
+
+    async addNewVehicle(req, res) {
+        try {
+            console.log("New Vehicle Data..");
+            const addVehicleRes = await this.vehical.addNewVehicle(req, res);
+            this.ok(res, addVehicleRes);
         } catch (err) {
             this.error(res, err);
         }

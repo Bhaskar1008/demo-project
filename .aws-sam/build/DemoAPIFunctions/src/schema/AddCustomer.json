@@ -43,7 +43,7 @@
             "type": [
                 "string"
             ],
-            "maxLength": 50,
+            "maxLength": 100,
             "description": "Password"
         },
         "LocationName": {

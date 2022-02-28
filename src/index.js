@@ -37,22 +37,23 @@ const {
     defaultHandler
 } = require("./controller/index.js");
 
-
+// get Customers/specific customer
 app.get('/customer/:id?', demoProjectApi.getCustomerList);
+
+// update Customer details
 app.post('/updateCustomer', demoProjectApi.updateCustomerDetail );
+
+// add new customer
 app.post('/AddCustomer', demoProjectApi.addNewCustomer);
+
+// validate user login
 app.post('/validateLogin', demoProjectApi.validateLogin );
-// app.post('/test_api', base64_upload.array('test_file', 10), function(req, res){
-//   res.send({body: req.body, files: req.files});
-//     // console.log('Test Request');
-//     // if(req.file !== undefined) {
-//     //     // file uploaded
-//     //     console.log(req.file.buffer.toString('base64'));
-    
-//     // }
-//     // res.send(req.body);
-// });
+
+app.post('/reset-password', demoProjectApi.resetPassword );
+
+// add new vehicle {contains base64 images}
 app.post('/addVehicle', base64_upload.array('vehicle_images', 10), demoProjectApi.addNewVehicle);
+
 
 
 const server = awsServerlessExpress.createServer(app);

@@ -6,6 +6,7 @@
     "additionalProperties": true,
     "required": [
         "ID",
+        "CreatedBy",
         "VehicleServiceType",
         "VehicleType",
         "VehicleNumber",

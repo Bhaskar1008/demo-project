@@ -65,6 +65,20 @@ class CustomerRepository{
         return null;
     }
 
+    async validCustomerId(id) {
+        const params = {
+            TableName: TABLE.TABLE_CUSTOMER,
+            ProjectionExpression: ['ID'],
+            FilterExpression: " ID = :id ",
+            ExpressionAttributeValues: {
+                ":id": id
+            }
+        };
+        const data = await documentClient.scan(params).promise();
+
+        if(data) return (data.Items[0]?.ID == id);
+        return null;
+    }
 
     async updateCustomer(data, id) {
         try{

@@ -3,7 +3,7 @@ const {
     v4: uuidv4,
   } = require('uuid');
 
-//   const bcrypt = require('bcrypt');
+  const bcrypt = require('bcryptjs');
 const BaseManager = require('./base.manager');
 const ValidationError = require('../exception/validation.error');
 const InternalError = require('../exception/internal.error');
@@ -50,9 +50,9 @@ class Customer extends BaseManager {
         try {
             if(str) {
                 // error
-                // const salt =  bcrypt.genSaltSync(10);
-                // return bcrypt.hashSync(str, salt);    
-                return str;
+                const salt =  bcrypt.genSaltSync(10);
+                return bcrypt.hashSync(str, salt);    
+                // return str;
             }
             return undefined;
             // return new NotFound(MSG.NOT_FOUND, 'Not Found');
@@ -122,12 +122,13 @@ class Customer extends BaseManager {
             if(validationResult.valid) {
                 const passwordItem = await this.CustomerRepository.validateUser(sanitize_data);
 
-                const password = passwordItem.Items[0].Password;
-
+                const password = passwordItem.Items[0]?.Password || "";
+                
                 const RespData = {
                     code: 200,
                     status: "Success",
                     data: password,
+                    res: bcrypt.compareSync(sanitize_data.password, password ),
                     sanitize_data: sanitize_data
                 }
                 return RespData;
@@ -137,7 +138,7 @@ class Customer extends BaseManager {
             if(custom_validation_list.includes(err.name || "")) {
                 return err;
             }
-            return new InternalError(MSG.INTERNAL_ERROR, err);
+            return new InternalError(MSG.INTERNAL_ERROR, err.message);
         }
     }
 
