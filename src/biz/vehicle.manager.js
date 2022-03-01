@@ -143,6 +143,7 @@ class Vehicle extends BaseManager {
     async getVehicleList (req,res) {
         try {
             const response = await this.VehicleRepository.VehicleList(req);
+            // const result = await this.VehicleRepository.VehicleImage(req);
             const RespData = {
                 status: 200,
                 msg: "Success",
