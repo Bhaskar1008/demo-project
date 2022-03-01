@@ -140,5 +140,21 @@ class Vehicle extends BaseManager {
             return v.toString(16);
         });
     }
+    async getVehicleList (req,res) {
+        try {
+            const response = await this.VehicleRepository.VehicleList(req);
+            const RespData = {
+                status: 200,
+                msg: "Success",
+                data: response
+            }
+            return RespData;
+        }catch(err) {
+            if(custom_validation_list.includes(err.name || "")) {
+                return err;
+            }
+            return new InternalError(MSG.INTERNAL_ERROR, err);
+        }
+    }
 }
 module.exports = Vehicle;

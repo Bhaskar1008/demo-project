@@ -80,6 +80,16 @@ class demoProjectApi extends base_controller {
             this.error(res, err);
         }
     }
+    async getVehicleList(req, res) {
+        try{
+            console.log('Getting all vehicle list');
+            const getVehicleList = await this.vehical.getVehicleList(req);
+            this.ok(res, getVehicleList)
+        } catch (err) {
+            
+            this.error(res, err);
+        }
+    }
 
 }
 module.exports = demoProjectApi;

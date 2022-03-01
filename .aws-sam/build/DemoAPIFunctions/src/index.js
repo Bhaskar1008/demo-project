@@ -53,6 +53,7 @@ app.post('/reset-password', demoProjectApi.resetPassword );
 
 // add new vehicle {contains base64 images}
 app.post('/addVehicle', base64_upload.array('vehicle_images', 10), demoProjectApi.addNewVehicle);
+app.get('/vehicle/customer/:id', demoProjectApi.getVehicleList);
 
 
 

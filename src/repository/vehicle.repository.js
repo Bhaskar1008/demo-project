@@ -84,6 +84,31 @@ class VehicleRepository{
         }
         
     }
+    async VehicleList(req) {
+        // this will load all vehicle data 
+        const params = {
+            TableName: TABLE.TABLE_VEHICLE
+        };
+        if(req.params.id) {
+            params.FilterExpression = " ID = :id ";
+            params.ExpressionAttributeValues = {
+                ":id": req.params.id
+            }
+        }
+
+        let scanResults = [];
+        let data, Count = 0;
+        do {
+            data = await documentClient.scan(params).promise();
+            scanResults.push(...data.Items);
+            Count += data.Count;
+            params.ExclusiveStartKey = data.LastEvaluatedKey;
+        } while (data.LastEvaluatedKey);
+        
+        const Items = scanResults;
+        // if (offset && limit) Items = scanResults.slice(offset, limit + offset);
+        return { Items, LastEvaluatedKey: data.LastEvaluatedKey, Count };
+    }
 }
 
 module.exports = VehicleRepository;
