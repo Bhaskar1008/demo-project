@@ -5,6 +5,7 @@ const {
   
 const BaseManager = require('./base.manager');
 const ValidationError = require('../exception/validation.error');
+const InternalError = require('../exception/internal.error');
 const NotFound = require('../exception/not-found.error');
 const vehicle_repository = require('../repository/vehicle.repository');
 const customer_repository = require('../repository/customer.repository');

@@ -5,7 +5,7 @@ const msg = require('../constant/msg');
 
 
 class VehicleRepository {
-    constructor() { }
+    constructor() { this.INTERNAL_ERROR }
 
     async addVehicle(request) {
         console.log(`New Vehicle Adding: ${JSON.stringify(request)}`);
@@ -80,29 +80,60 @@ class VehicleRepository {
             return null;
         } catch (err) {
             // console.log('Error Raised Here', err.message);
-            throw new InternalError(MSG.INTERNAL_ERROR, err.message);
+            throw new InternalError(msg.INTERNAL_ERROR, err.message);
         }
 
     }
     async VehicleList(req) {
-        // this will load all vehicle data 
-        const params = {
-            TableName: TABLE.TABLE_VEHICLE
-        };
-        if (req.params.id) {
-            params.FilterExpression = " CreatedBy = :id ";
-            params.ExpressionAttributeValues = {
-                ":id": req.params.id
+        try {
+            // this will load all vehicle data 
+            const params = {
+                TableName: TABLE.TABLE_VEHICLE
+            };
+            if (req.params.id) {
+                params.FilterExpression = " CreatedBy = :id ";
+                params.ExpressionAttributeValues = {
+                    ":id": req.params.id
+                }
             }
+            let scanResults = [];
+            let data, Count = 0;
+            do {
+                data = await documentClient.scan(params).promise();
+                scanResults.push(...data.Items);
+                Count += data.Count;
+                params.ExclusiveStartKey = data.LastEvaluatedKey;
+            } while (data.LastEvaluatedKey);
+
+            const Items = scanResults;
+            // return Items
+
+            Items.forEach(async (item, index) => {
+                // item.VehicleImage_ID;
+                if (item.VehicleImage_ID) {
+                    // console.log("Log 1",typeof this.VehicleImage)
+                    let Imagedata = await this.VehicleImage(item.VehicleImage_ID)
+                    // console.log(Imagedata,"imagedata")
+                    Items[index]['IMAGES'] = ImageData;
+
+                }
+                // console.log(item.VehicleImage_ID, "log2")
+             
+            });
+            return Items;
+            // if (Items.VehicleImage_ID.length) {
+            //     console.log("Log 1")
+
+            // }
+            // // if (offset && limit) Items = scanResults.slice(offset, limit + offset);
+            // return { Items, LastEvaluatedKey: data.LastEvaluatedKey,Imagedata, Count};
         }
-        let scanResults = [];
-        let data, Count = 0;
-        do {
-            data = await documentClient.scan(params).promise();
-            scanResults.push(...data.Items);
-            Count += data.Count;
-            params.ExclusiveStartKey = data.LastEvaluatedKey;
-        } while (data.LastEvaluatedKey);
+        catch (err) {
+            console.log('Error Raised Here', err.message);
+            throw new InternalError(msg.INTERNAL_ERROR, err.message);
+        }
+
+
 
         const Items = scanResults;
 
@@ -181,7 +212,11 @@ class VehicleRepository {
         //     TableName: TABLE.TABLE_VEHICLE_IMAGES
         // };
         // if (req.params.id) {
+<<<<<<< HEAD
         //     params.FilterExpression = "VehicleImage_ID = :id";
+=======
+        //     params.FilterExpression = "ID = :id";
+>>>>>>> 849bf4af147c59e21c0fe216cabdc9cc42e360c9
         //     params.ExpressionAttributeValues = {
         //         ":id": req.params.id
         //     }
@@ -200,6 +235,8 @@ class VehicleRepository {
         // // if (offset && limit) Items = scanResults.slice(offset, limit + offset);
         // return { Items, LastEvaluatedKey: data.LastEvaluatedKey, Count };
     }
+    
+
 
 }
 
