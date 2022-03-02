@@ -43,7 +43,7 @@ class ResetPassword {
                 CustomerID: CustomerID
             });
             
-            let current_time = new Date().toISOString();
+            let current_time = this.utils.getCurrentTime(); //new Date().toISOString();
             let modify_time = new Date(current_time);
             modify_time.setHours(modify_time.getHours() - MIN_HOUR);
             let minus_one_hr = modify_time.toISOString();
@@ -68,7 +68,8 @@ class ResetPassword {
                 // else 
                 //      false
                 if((data?.Count || MAX_RESET_LIMIT) >= MAX_RESET_LIMIT) {
-                    let current_time = new Date(new Date().toISOString());
+                    // let current_time = new Date(new Date().toISOString()); 
+                    let current_time = new Date(this.utils.getCurrentTime()); 
                     let MinLastResetReq = current_time.setHours(current_time.getHours() - MIN_HOUR);
                     
                     return (data?.Items[0]?.GeneratedAt < MinLastResetReq) && data?.Items[0]?.GeneratedAt;
@@ -83,9 +84,9 @@ class ResetPassword {
         } catch(err) {
             
             if(custom_validation_list.includes(err.name || "")) {
-                return err;
+                throw err;
             }
-            return new InternalError(msg.INTERNAL_ERROR, err.message);
+            throw new InternalError(msg.INTERNAL_ERROR, err.message);
         }
     }
 
@@ -100,27 +101,37 @@ class ResetPassword {
             
             let params = {
                 TableName: TABLE.TABLE_RESET_PASSWORD,
-                Items: {
-                    ProjectionExpression: ['ID', 'OTP', 'GeneratedAt'],
+                // Items: {
+                    // ProjectionExpression: ['ID', 'OTP', 'GeneratedAt', 'VerifiedAt'],
                     FilterExpression: ` ${expression_list.join(' and ')}  `,
+                    // KeyConditionExpression: ` ${expression_list.join(' and ')}  `,
                     ExpressionAttributeNames:expression_name,
                     ExpressionAttributeValues: expression_value,
-                    ScanIndexForward: false
-                }
+                    ScanIndexForward: true
+                // }
             }
-
+            // return params;
             let data = await documentClient.scan(params).promise();
             
+            // return data;
+            
             // check OTP generated Time lies between current to current - 24 hrs
-            let max_time = new Date().toISOString();
+            let max_time = this.utils.getCurrentTime(); //new Date().toISOString();
             let pre_time = new Date(max_time);
             pre_time.setHours(pre_time.getHours() - MIN_HOUR);
             let min_time = pre_time.toISOString();
 
-            if((data.Items[data.Count - 1].GeneratedAt < max_time) && (data.Items[data.Count - 1].GeneratedAt > min_time) ){
-                return data.Items[data.Count - 1].OTP;
+            // if((data.Items[data.Count - 1].GeneratedAt < max_time) && (data.Items[data.Count - 1].GeneratedAt > min_time) ){
+            if((data.Items[0].GeneratedAt < max_time) && (data.Items[0].GeneratedAt > min_time) ){                
+                // if(data.Items[data.Count - 1].VerifiedAt) {
+                if(data.Items[0].VerifiedAt) {
+                    throw new InternalError(msg.INTERNAL_ERROR, 'OTP Already Validated');
+                }
+                // return data.Items[data.Count - 1];
+                return data.Items[0];
             }
-            return null;
+            throw new InternalError(msg.INTERNAL_ERROR, 'OTP Validity Exceeded, generate new one');
+            // return null;
 
             // data.Items[data.Count - 1].GeneratedAt
             // return {data: data, last: data.Items[0]};
@@ -128,9 +139,9 @@ class ResetPassword {
 
         } catch(err) {
             if(custom_validation_list.includes(err.name || "")) {
-                return err;
+                throw err;
             }
-            return new InternalError(msg.INTERNAL_ERROR, err.message);
+            throw new InternalError(msg.INTERNAL_ERROR, err.message);
         }
     }
 
@@ -187,7 +198,11 @@ class ResetPassword {
         }catch(err) {
             // console.log('Error Occured');
             // console.log(err);
-            console.log('Message Sent Error', err.message);
+            // console.log('Message Sent Error', err.message);
+            // throw new InternalError(msg.INTERNAL_ERROR, err.message);
+            if(custom_validation_list.includes(err.name || "")) {
+                throw err;
+            }
             throw new InternalError(msg.INTERNAL_ERROR, err.message);
         }
     }
@@ -224,6 +239,54 @@ class ResetPassword {
             if(updateRes) return updateRes;
             return null;
         }catch(err) {
+            // throw new InternalError(msg.INTERNAL_ERROR, err.message);
+            if(custom_validation_list.includes(err.name || "")) {
+                throw err;
+            }
+            throw new InternalError(msg.INTERNAL_ERROR, err.message);
+        }
+    }
+
+    /**
+     * 
+     * @param {*} updatedParam | {Values to be updated} 
+     * @param {*} ID | {Updated TO this Reset_ID}
+     */
+    async updateResetPasswordReq({updatedParam, ID}) {
+        try {
+
+            var { expression_list, expression_name, expression_value } = await this.utils.santize_expression_obj(updatedParam);
+
+            const getSortKey = {
+                TableName: TABLE.TABLE_RESET_PASSWORD,
+                ProjectionExpression: ['GeneratedAt'],
+                FilterExpression : " ID = :id ",
+                ExpressionAttributeValues : {
+                    ":id": ID
+                }
+            }
+            const GreatedAt_VALUE = await documentClient.scan(getSortKey).promise();
+
+            let params = {
+                TableName: TABLE.TABLE_RESET_PASSWORD,
+                Key: {
+                    "ID": ID,
+                    "GeneratedAt" : GreatedAt_VALUE.Items[0].GeneratedAt || ""
+                },
+                UpdateExpression: `SET ${expression_list.join(', ')} `,
+                ExpressionAttributeNames: expression_name,
+                ExpressionAttributeValues: expression_value,
+                ReturnValues: "UPDATED_NEW"
+            };
+
+            const updateRes = await documentClient.update(params).promise();
+            if(updateRes) return updateRes;
+            return null;
+        } catch (err) {
+            // throw new InternalError(msg.INTERNAL_ERROR, err.message);
+            if(custom_validation_list.includes(err.name || "")) {
+                throw err;
+            }
             throw new InternalError(msg.INTERNAL_ERROR, err.message);
         }
     }

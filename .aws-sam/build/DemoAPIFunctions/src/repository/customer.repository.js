@@ -6,6 +6,7 @@ const { TABLE_CUSTOMER } = require('../constant/table');
 // const SNSService = require('../services/sns.service');
 // const { SNS } = require('../services/aws.service');
 const utils = require('../constant/utils');
+const custom_validation_list = require('../exception/custom-exception-list');
 // const ResetPasswordManager = require('../biz/reset_password.manager');
 
 class CustomerRepository{
@@ -16,29 +17,36 @@ class CustomerRepository{
     }
 
     async CustomerList(req) {
-        // this will load all customer data 
-        const params = {
-            TableName: TABLE.TABLE_CUSTOMER
-        };
-        if(req.params.id) {
-            params.FilterExpression = " ID = :id ";
-            params.ExpressionAttributeValues = {
-                ":id": req.params.id
+        try{
+            // this will load all customer data 
+            const params = {
+                TableName: TABLE.TABLE_CUSTOMER
+            };
+            if(req.params.id) {
+                params.FilterExpression = " ID = :id ";
+                params.ExpressionAttributeValues = {
+                    ":id": req.params.id
+                }
             }
-        }
 
-        let scanResults = [];
-        let data, Count = 0;
-        do {
-            data = await documentClient.scan(params).promise();
-            scanResults.push(...data.Items);
-            Count += data.Count;
-            params.ExclusiveStartKey = data.LastEvaluatedKey;
-        } while (data.LastEvaluatedKey);
-        
-        const Items = scanResults;
-        // if (offset && limit) Items = scanResults.slice(offset, limit + offset);
-        return { Items, LastEvaluatedKey: data.LastEvaluatedKey, Count };
+            let scanResults = [];
+            let data, Count = 0;
+            do {
+                data = await documentClient.scan(params).promise();
+                scanResults.push(...data.Items);
+                Count += data.Count;
+                params.ExclusiveStartKey = data.LastEvaluatedKey;
+            } while (data.LastEvaluatedKey);
+            
+            const Items = scanResults;
+            // if (offset && limit) Items = scanResults.slice(offset, limit + offset);
+            return { Items, LastEvaluatedKey: data.LastEvaluatedKey, Count };
+        }catch(err) {
+            if(custom_validation_list.includes(err.name || "")) {
+                throw err;
+            }
+            throw new InternalError(MSG.INTERNAL_ERROR, err.message);
+        }
     }
 
     // async addCustomer() {
@@ -46,46 +54,70 @@ class CustomerRepository{
     //     return await {res: "In process"}
     // }
     async addCustomer(rquest) {
-        console.log(`New Customer Adding: ${JSON.stringify(rquest)}`);
-        const params = {
-            TableName: TABLE.TABLE_CUSTOMER,
-            Item: rquest
-        };
-        const data = await documentClient.put(params).promise();
-        // console.log('Inserted New Customer: ', data);
-        // console.log('Data res', data);
-        if (data) return data;
-        return null;
+        try{
+            console.log(`New Customer Adding: ${JSON.stringify(rquest)}`);
+            const params = {
+                TableName: TABLE.TABLE_CUSTOMER,
+                Item: rquest
+            };
+            const data = await documentClient.put(params).promise();
+            // console.log('Inserted New Customer: ', data);
+            // console.log('Data res', data);
+            if (data) return data;
+            return null;
+        }catch(err) {
+            if(custom_validation_list.includes(err.name || "")) {
+                throw err;
+            }
+            throw new InternalError(MSG.INTERNAL_ERROR, err.message);
+        }
+        
     }
 
     async validateUser({email, password}) {
-        const params = {
-            TableName: TABLE.TABLE_CUSTOMER,
-            ProjectionExpression: ['Password'],
-            FilterExpression: " EmailID = :emailID ",
-            ExpressionAttributeValues: {
-                ":emailID": email
+        try {
+            const params = {
+                TableName: TABLE.TABLE_CUSTOMER,
+                ProjectionExpression: ['Password'],
+                FilterExpression: " EmailID = :emailID ",
+                ExpressionAttributeValues: {
+                    ":emailID": email
+                }
+            };
+            const data = await documentClient.scan(params).promise();
+    
+            if(data) return data;
+            return null;
+        } catch (err) {
+            if(custom_validation_list.includes(err.name || "")) {
+                throw err;
             }
-        };
-        const data = await documentClient.scan(params).promise();
-
-        if(data) return data;
-        return null;
+            throw new InternalError(MSG.INTERNAL_ERROR, err.message);
+        }
+        
     }
 
     async validCustomerId(id) {
-        const params = {
-            TableName: TABLE.TABLE_CUSTOMER,
-            ProjectionExpression: ['ID'],
-            FilterExpression: " ID = :id ",
-            ExpressionAttributeValues: {
-                ":id": id
+        try{
+            const params = {
+                TableName: TABLE.TABLE_CUSTOMER,
+                ProjectionExpression: ['ID'],
+                FilterExpression: " ID = :id ",
+                ExpressionAttributeValues: {
+                    ":id": id
+                }
+            };
+            const data = await documentClient.scan(params).promise();
+    
+            if(data) return (data.Items[0]?.ID == id);
+            return null;
+        }catch(err){
+            if(custom_validation_list.includes(err.name || "")) {
+                throw err;
             }
-        };
-        const data = await documentClient.scan(params).promise();
-
-        if(data) return (data.Items[0]?.ID == id);
-        return null;
+            throw new InternalError(MSG.INTERNAL_ERROR, err.message);
+        }
+        
     }
 
     async updateCustomer(data, id) {
@@ -121,7 +153,11 @@ class CustomerRepository{
             return null;
         } catch(err) {
             // console.log('Error Raised Here', err.message);
-            throw new InternalError(MSG.INTERNAL_ERROR, err);
+            // throw new InternalError(MSG.INTERNAL_ERROR, err);
+            if(custom_validation_list.includes(err.name || "")) {
+                throw err;
+            }
+            throw new InternalError(MSG.INTERNAL_ERROR, err.message);
         }
         
     }
@@ -153,24 +189,32 @@ class CustomerRepository{
      * @param {Object} conditionItemsObj Items with value for condition {ID: "001"}
      */
     async getCustomerDetail(table_name = TABLE.TABLE_CUSTOMER, projectionItemsArr, conditionItemsObj) {
-        var {expression_list, expression_name, expression_value} = await this.utils.santize_expression_obj(conditionItemsObj);
+        try{
+            var {expression_list, expression_name, expression_value} = await this.utils.santize_expression_obj(conditionItemsObj);
         
-        // console.log(expression_list);
-        // console.log(expression_name);
-        // console.log(expression_value);
+            // console.log(expression_list);
+            // console.log(expression_name);
+            // console.log(expression_value);
+            
+
+            const params = {
+                TableName: table_name,
+                ProjectionExpression: projectionItemsArr,
+                FilterExpression: ` ${expression_list.join(', ')} `,
+                ExpressionAttributeNames:expression_name,
+                ExpressionAttributeValues: expression_value
+            };
+            let data = await documentClient.scan(params).promise();
+
+            if(data) return data;
+            return null;
+        }catch(err){
+            if(custom_validation_list.includes(err.name || "")) {
+                throw err;
+            }
+            throw new InternalError(MSG.INTERNAL_ERROR, err.message);
+        }
         
-
-        const params = {
-            TableName: table_name,
-            ProjectionExpression: projectionItemsArr,
-            FilterExpression: ` ${expression_list.join(', ')} `,
-            ExpressionAttributeNames:expression_name,
-            ExpressionAttributeValues: expression_value
-        };
-        let data = await documentClient.scan(params).promise();
-
-        if(data) return data;
-        return null;
     }
 
     // async resetPassword({EmailID, CustomerID, otp}) {

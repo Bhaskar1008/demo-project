@@ -23,7 +23,7 @@ class ResetPassword{
                 ID: this.utils.generateUUID(),
                 CustomerID: request.CustomerID || "",
                 OTP: request.OTP || undefined,
-                GeneratedAt: new Date().toISOString()
+                GeneratedAt: this.utils.getCurrentTime() //new Date().toISOString()
             };
     
             if(!(sanitize_data.ID || sanitize_data.CustomerID || sanitize_data.OTP || sanitize_data.GeneratedAt)) {
@@ -49,9 +49,9 @@ class ResetPassword{
             // console.log(err.message);
             // console.log('This is error called')
             if(custom_validation_list.includes(err.name || "")) {
-                return err;
+                throw err;
             }
-            return new InternalError(msg.INTERNAL_ERROR, err);
+            throw new InternalError(msg.INTERNAL_ERROR, err);
         }
     }
 
@@ -69,14 +69,34 @@ class ResetPassword{
                 // NewPassword: req.body.Password || 
             };
             if(parseInt(sanitize_data.OTP).toString().length === 4 && typeof sanitize_data.CustomerID === 'string' && new_password){
-                let data = await this.reset_password.validateOTP(sanitize_data);
-                if(sanitize_data.OTP == data) {
+                var data = await this.reset_password.validateOTP(sanitize_data);
+                // return data;
+                console.log('OTP Received', data?.OTP);
+                if(sanitize_data.OTP == (data?.OTP || undefined)) {
                     // otp matched
                     // change password
                     let res = await this.reset_password.updatePassword({CustomerID: sanitize_data.CustomerID, NewPassword: this.utils.generatePassword(new_password)});
                     if(res) {
-                        return "Password Changed Successfully";
+                        console.log('Inside Condition', data?.ID);
+                        // set VerifiedAt in reset password
+                        let updatedParam = {
+                            VerifiedAt: this.utils.getCurrentTime() //new Date().toISOString()
+                        };
+                        let resetReqUpdate = await this.reset_password.updateResetPasswordReq({updatedParam: updatedParam, ID: data?.ID})
+                        let respData = {
+                            code: 200
+                        };
+                        if(resetReqUpdate){
+                            respData['status'] = "Success";
+                            respData['data'] = "Password Changed Successfully";
+                        } else {
+                            respData['status'] = "Failed";
+                            respData['data'] = "Something went wrong";
+                        }
+                        return respData;
+                        // return "Something Went Wrong";
                     }
+                    // console.log('Condition Failed');
                 }
                 throw new InternalError(msg.INTERNAL_ERROR, 'Invalid OTP')
                 return data;
@@ -88,9 +108,9 @@ class ResetPassword{
             throw new InternalError(msg.INTERNAL_ERROR, 'Invalid Body passed {OTP, CustomerID, NewPassword}')
         } catch (err) {
             if(custom_validation_list.includes(err.name || "")) {
-                return err;
+                throw err;
             }
-            return new InternalError(msg.INTERNAL_ERROR, err.message);
+            throw new InternalError(msg.INTERNAL_ERROR, err.message);
         }
     }
     
@@ -110,7 +130,7 @@ class ResetPassword{
                 'ID': this.utils.generateUUID(),
                 'CustomerID': sanitize_data.CustomerID,
                 'OTP': otp,
-                'GeneratedAt': new Date().toISOString()
+                'GeneratedAt': this.utils.getCurrentTime() //new Date().toISOString()
             };
             var resp = await this.addNewResetReq(InsertionData);
 
@@ -134,9 +154,9 @@ class ResetPassword{
         }catch(err) {
             console.log('Error Occured In ResetPassword Manager');
             if(custom_validation_list.includes(err.name || "")) {
-                return err;
+                throw err;
             }
-            return new InternalError(msg.INTERNAL_ERROR, err.message);
+            throw new InternalError(msg.INTERNAL_ERROR, err.message);
         }
         
     }

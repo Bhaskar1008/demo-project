@@ -31,9 +31,9 @@ class Customer extends BaseManager {
             return RespData;
         }catch(err) {
             if(custom_validation_list.includes(err.name || "")) {
-                return err;
+                throw err;
             }
-            return new InternalError(MSG.INTERNAL_ERROR, err);
+            throw new InternalError(MSG.INTERNAL_ERROR, err);
         }
     }
 
@@ -93,9 +93,9 @@ class Customer extends BaseManager {
             throw new ValidationError(MSG.VALIDATION_ERROR, validationResult.errors);
         } catch(err) {
             if(custom_validation_list.includes(err.name || "")) {
-                return err;
+                throw err;
             }
-            return new InternalError(MSG.INTERNAL_ERROR, err);
+            throw new InternalError(MSG.INTERNAL_ERROR, err);
         }
     }
 
@@ -124,9 +124,9 @@ class Customer extends BaseManager {
             throw new ValidationError(MSG.VALIDATION_ERROR, validationResult.errors);
         } catch (err) {
             if(custom_validation_list.includes(err.name || "")) {
-                return err;
+                throw err;
             }
-            return new InternalError(MSG.INTERNAL_ERROR, err.message);
+            throw new InternalError(MSG.INTERNAL_ERROR, err.message);
         }
     }
 
@@ -173,9 +173,9 @@ class Customer extends BaseManager {
             throw new ValidationError(MSG.VALIDATION_ERROR, validationResult.errors);
         } catch (err) {
             if(custom_validation_list.includes(err.name || "")) {
-                return err;
+                throw err;
             }
-            return new InternalError(MSG.INTERNAL_ERROR, err);
+            throw new InternalError(MSG.INTERNAL_ERROR, err);
         }
     }
 

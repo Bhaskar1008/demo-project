@@ -28,6 +28,10 @@ class helper_fn {
         }
     }
 
+    getCurrentTime() {
+        return new Date().toISOString();
+    }
+
     async santize_expression_obj(data) {
         var expression_list = [];
         var expression_name = {};
