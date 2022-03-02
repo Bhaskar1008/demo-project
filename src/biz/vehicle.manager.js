@@ -7,6 +7,7 @@ const BaseManager = require('./base.manager');
 const ValidationError = require('../exception/validation.error');
 const NotFound = require('../exception/not-found.error');
 const vehicle_repository = require('../repository/vehicle.repository');
+const customer_repository = require('../repository/customer.repository');
 const SCHEMA = require('../constant/schema');
 const MSG = require("../constant/msg");
 const custom_validation_list = require('../exception/custom-exception-list');
@@ -16,6 +17,7 @@ class Vehicle extends BaseManager {
     constructor(){
         super();
         this.VehicleRepository = new vehicle_repository();
+        this.CustomerRepository = new customer_repository();
     }
     
     sanitizeArray(data) {
@@ -31,7 +33,7 @@ class Vehicle extends BaseManager {
 
         // return  req.body;
             const sanitize_data = {
-                ID:this.generateUUID(),  
+                ID:this.generateUUID(), 
                 VehicleServiceType: req.body.VehicleServiceType || "",
                 VehicleType: req.body.VehicleType || "",
                 VehicleNumber: req.body.VehicleNumber || "" ,
@@ -60,6 +62,10 @@ class Vehicle extends BaseManager {
             // return sanitize_data
             const validationResult = this.validate(SCHEMA.ADD_Vehical, sanitize_data);
             if(validationResult.valid) {
+                if(!await this.CustomerRepository.validCustomerId(sanitize_data.CreatedBy)) {
+                    throw new ValidationError(MSG.VALIDATION_ERROR, "Invalid Customer Id");
+                }
+
                 const response = await this.VehicleRepository.addVehicle(sanitize_data);
                 // let response = "test_success";
                 // return {response:response}
@@ -133,6 +139,23 @@ class Vehicle extends BaseManager {
             var rnd = Math.random()*16 |0, v = c === 'x' ? rnd : (rnd&0x3|0x8) ;
             return v.toString(16);
         });
+    }
+    async getVehicleList (req,res) {
+        try {
+            const response = await this.VehicleRepository.VehicleList(req);
+            // const result = await this.VehicleRepository.VehicleImage(req);
+            const RespData = {
+                status: 200,
+                msg: "Success",
+                data: response
+            }
+            return RespData;
+        }catch(err) {
+            if(custom_validation_list.includes(err.name || "")) {
+                return err;
+            }
+            return new InternalError(MSG.INTERNAL_ERROR, err);
+        }
     }
 }
 module.exports = Vehicle;

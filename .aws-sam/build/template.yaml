@@ -11,6 +11,10 @@ Resources:
       Variables:
         ServerlessExpressLambdaFunctionName:
           Ref: DemoAPIFunctions
+        CognitoArn:
+          Fn::GetAtt:
+          - CognitoUserPool
+          - Arn
   DemoAPIFunctions:
     Type: AWS::Serverless::Function
     Properties:
