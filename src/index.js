@@ -53,6 +53,8 @@ app.post('/validateLogin', demoProjectApi.validateLogin );
 
 app.post('/reset-password', demoProjectApi.resetPassword );
 
+app.post('/validate-otp', demoProjectApi.validateOTP);
+
 // add new vehicle {contains base64 images}
 app.post('/addVehicle', base64_upload.array('vehicle_images', 10), demoProjectApi.addNewVehicle);
 

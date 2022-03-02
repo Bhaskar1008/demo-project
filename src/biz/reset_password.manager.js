@@ -4,11 +4,16 @@ const ValidationError = require('../exception/validation.error');
 const msg = require('../constant/msg');
 const custom_validation_list = require('../exception/custom-exception-list');
 const InternalError = require('../exception/internal.error');
+const { SNS } = require('../services/aws.service');
 
+const TABLE = require('../constant/table')
 
 class ResetPassword{
     constructor(){
+        // console.log('Log 1')
+        // super(),
         this.reset_password = new ResetPasswordRepo();
+        // console.log('Log 2')
         this.utils = new utils();
     }
 
@@ -17,7 +22,7 @@ class ResetPassword{
             const sanitize_data = {
                 ID: this.utils.generateUUID(),
                 CustomerID: request.CustomerID || "",
-                OTP: request.otp || "",
+                OTP: request.OTP || undefined,
                 GeneratedAt: new Date().toISOString()
             };
     
@@ -41,10 +46,12 @@ class ResetPassword{
             return null;
 
         } catch(err) {
+            // console.log(err.message);
+            // console.log('This is error called')
             if(custom_validation_list.includes(err.name || "")) {
                 return err;
             }
-            return new InternalError(MSG.INTERNAL_ERROR, err);
+            return new InternalError(msg.INTERNAL_ERROR, err);
         }
     }
 
@@ -53,8 +60,87 @@ class ResetPassword{
      * @param {*} request.OTP | {4 digit numbers}
      * @param {*} request.CustomerID | string
      */
-    async validateOTP(request) {
-        
+    async validateOTP(req, res) {
+        try{
+            const new_password = req.body.NewPassword;
+            const sanitize_data = {
+                OTP: req.body.OTP || undefined,
+                CustomerID: req.body.CustomerID || undefined
+                // NewPassword: req.body.Password || 
+            };
+            if(parseInt(sanitize_data.OTP).toString().length === 4 && typeof sanitize_data.CustomerID === 'string' && new_password){
+                let data = await this.reset_password.validateOTP(sanitize_data);
+                if(sanitize_data.OTP == data) {
+                    // otp matched
+                    // change password
+                    let res = await this.reset_password.updatePassword({CustomerID: sanitize_data.CustomerID, NewPassword: this.utils.generatePassword(new_password)});
+                    if(res) {
+                        return "Password Changed Successfully";
+                    }
+                }
+                throw new InternalError(msg.INTERNAL_ERROR, 'Invalid OTP')
+                return data;
+            }
+            // if(parseInt(sanitize_data.OTP).toString().length === 4 && typeof sanitize_data.CustomerID === 'string'){
+            //     let data = await this.reset_password.validateOTP(sanitize_data);
+            //     return data;
+            // }
+            throw new InternalError(msg.INTERNAL_ERROR, 'Invalid Body passed {OTP, CustomerID, NewPassword}')
+        } catch (err) {
+            if(custom_validation_list.includes(err.name || "")) {
+                return err;
+            }
+            return new InternalError(msg.INTERNAL_ERROR, err.message);
+        }
     }
     
+    async resetPassword(req, res) {
+        try{
+            if(!req.body.EmailID || !req.body.CustomerID){
+                throw new ValidationError(msg.VALIDATION_ERROR, "CustomerID Or EmailID is required")
+            }
+            let sanitize_data = {
+                EmailId: req.body.EmailID,
+                CustomerID: req.body.CustomerID
+            };
+
+            var otp = await Math.floor(1000 + Math.random() * 9000);
+
+            let InsertionData = {
+                'ID': this.utils.generateUUID(),
+                'CustomerID': sanitize_data.CustomerID,
+                'OTP': otp,
+                'GeneratedAt': new Date().toISOString()
+            };
+            var resp = await this.addNewResetReq(InsertionData);
+
+            var RespData = {
+                code: 200,
+                status: "Success",
+                data: sanitize_data
+            }
+
+            if(resp?.status == 'Success') {
+                const response = await this.reset_password.resetPassword({...sanitize_data,otp:otp});
+                RespData['response'] = response;
+            } else {
+                throw resp;
+            }
+
+            
+            return RespData;
+
+
+        }catch(err) {
+            console.log('Error Occured In ResetPassword Manager');
+            if(custom_validation_list.includes(err.name || "")) {
+                return err;
+            }
+            return new InternalError(msg.INTERNAL_ERROR, err.message);
+        }
+        
+    }
+
+    
 }
+module.exports = ResetPassword;

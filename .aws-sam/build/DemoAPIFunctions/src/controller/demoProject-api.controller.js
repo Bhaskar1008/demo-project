@@ -4,6 +4,7 @@ const base_controller = require('./base.controller')
 
 const Customer = require('../biz/customer.manager');
 const vehical = require('../biz/vehicle.manager');
+const reset_password = require('../biz/reset_password.manager');
 const loan = require('../biz/loan.manager');
 const accessories = require('../biz/accessories.manager');
 
@@ -14,6 +15,7 @@ class demoProjectApi extends base_controller {
         super();
         this.customer = new Customer();
         this.vehical = new vehical();
+        this.reset_password = new reset_password();
         // this.loan = new loan();
         // this.accessories = new accessories();
     }
@@ -64,8 +66,18 @@ class demoProjectApi extends base_controller {
     async resetPassword(req, res) {
         try {
             console.log("Password Reset Request..");
-            const addVehicleRes = await this.customer.resetPassword(req, res);
-            this.ok(res, addVehicleRes);
+            const resetPassword = await this.reset_password.resetPassword(req, res);
+            this.ok(res, resetPassword);
+        } catch (err) {
+            this.error(res, err);
+        }
+    }
+
+    async validateOTP(req, res) {
+        try {
+            console.log("OTP Validating..");
+            const otpValidate = await this.reset_password.validateOTP(req, res);
+            this.ok(res, otpValidate);
         } catch (err) {
             this.error(res, err);
         }

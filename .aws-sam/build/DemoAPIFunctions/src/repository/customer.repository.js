@@ -4,13 +4,15 @@ const InternalError = require('../exception/internal.error');
 const MSG = require('../constant/msg');
 const { TABLE_CUSTOMER } = require('../constant/table');
 // const SNSService = require('../services/sns.service');
-const { SNS } = require('../services/aws.service');
+// const { SNS } = require('../services/aws.service');
 const utils = require('../constant/utils');
+// const ResetPasswordManager = require('../biz/reset_password.manager');
 
 class CustomerRepository{
     constructor(){
         // this.sns_service = new SNSService();
         this.utils = new utils();
+        // this.ResetPasswordManager = new ResetPasswordManager();
     }
 
     async CustomerList(req) {
@@ -171,53 +173,69 @@ class CustomerRepository{
         return null;
     }
 
-    async resetPassword({EmailID, CustomerID, otp}) {
-        try{
-            let customerDetail = await this.getCustomerDetail(
-                TABLE.TABLE_CUSTOMER, 
-                ['ID', 'UserName', 'EmailID', 'ContactNumber', 'Isactive'],
-                {ID: CustomerID, EmailID: EmailID}    
-            );
-            let user_id = customerDetail.Items[0]?.ID || undefined;
-            let user_name = customerDetail.Items[0]?.UserName || undefined;
-            let user_email = customerDetail.Items[0]?.EmailID || undefined;
-            let user_contact = customerDetail.Items[0]?.ContactNumber || undefined;
-            let user_active = customerDetail.Items[0]?.Isactive || false;
+    // async resetPassword({EmailID, CustomerID, otp}) {
+    //     try{
+            
+    //         let customerDetail = await this.getCustomerDetail(
+    //             TABLE.TABLE_CUSTOMER, 
+    //             ['ID', 'UserName', 'EmailID', 'ContactNumber', 'Isactive'],
+    //             {ID: CustomerID, EmailID: EmailID}    
+    //         );
+    //         let user_id = customerDetail.Items[0]?.ID || undefined;
+    //         let user_name = customerDetail.Items[0]?.UserName || undefined;
+    //         let user_email = customerDetail.Items[0]?.EmailID || undefined;
+    //         var user_contact = customerDetail.Items[0]?.ContactNumber || undefined;
+    //         let user_active = customerDetail.Items[0]?.Isactive || false;
 
-            if(!user_active) {
-                throw new InternalError(MSG.INTERNAL_ERROR, 'User is inactive');
-            }
-            // user_contact = '9030143660';
-            // console.log('contact', user_contact);
-            var params = {
-                Message: `Hi,${user_name}.\n OTP: ${otp}`,
-                PhoneNumber: '+91' + user_contact,
-                MessageAttributes: {
-                    'AWS.SNS.SMS.SenderID': {
-                        'DataType': 'String',
-                        'StringValue': `RESET`
-                    }
-                }
-            };
-            // console.log(params.PhoneNumber);
+    //         if(!user_active) {
+    //             throw new InternalError(MSG.INTERNAL_ERROR, 'User is inactive');
+    //         }
+    //         // user_contact = '9030143660';
+    //         // console.log('contact', user_contact);
+    //         var params = {
+    //             Message: `Hi,${user_name}.\n OTP: ${otp}`,
+    //             PhoneNumber: '+91' + user_contact,
+    //             MessageAttributes: {
+    //                 'AWS.SNS.SMS.SenderID': {
+    //                     'DataType': 'String',
+    //                     'StringValue': `RESET`
+    //                 }
+    //             }
+    //         };
+    //         // console.log(params.PhoneNumber);
 
-            let tempRes = await SNS.publish(params).promise();
-            return tempRes;
-            // console.log(tempRes);
-            // return {
-            //     code: 200,
-            //     status: "Success",
-            //     data: tempRes
-            // };
-            // // this.sns_service.publish(process.env.SNS_TOPIC, 
-            // //     JSON.stringify({}))
+    //         let resp = await SNS.publish(params).promise();
+    //         console.log(resp?.MessageId);
+    //         console.log('OUTSIDE');
+    //         if(resp?.MessageId) {
+    //             console.log('Inside Condition');
+    //             let InsertionData = {
+    //                 'ID': this.utils.generateUUID(),
+    //                 'CustomerID': CustomerID,
+    //                 'OTP': otp,
+    //                 'ContactNo': user_contact, 
+    //                 'GeneratedAt': new Date().toISOString()
+    //             };
+    //             let resp = await this.ResetPasswordManager.addNewResetReq(InsertionData);
 
-        }catch(err) {
-            // console.log('Error Occured');
-            // console.log(err);
-            throw new InternalError(MSG.INTERNAL_ERROR, err.message);
-        }
-    }
+    //         }
+
+    //         return resp;
+    //         // console.log(tempRes);
+    //         // return {
+    //         //     code: 200,
+    //         //     status: "Success",
+    //         //     data: tempRes
+    //         // };
+    //         // // this.sns_service.publish(process.env.SNS_TOPIC, 
+    //         // //     JSON.stringify({}))
+
+    //     }catch(err) {
+    //         // console.log('Error Occured');
+    //         // console.log(err);
+    //         throw new InternalError(MSG.INTERNAL_ERROR, err.message);
+    //     }
+    // }
 }
 
 module.exports = CustomerRepository;

@@ -37,30 +37,26 @@ class Customer extends BaseManager {
         }
     }
 
-    generatePassword(str) {
-        // return str;
-        try {
-            if(str) {
-                // error
-                const salt =  bcrypt.genSaltSync(10);
-                return bcrypt.hashSync(str, salt);    
-                // return str;
-            }
-            return undefined;
-            // return new NotFound(MSG.NOT_FOUND, 'Not Found');
+    // generatePassword(str) {
+    //     // return str;
+    //     try {
+    //         if(str) {
+    //             // error
+    //             const salt =  bcrypt.genSaltSync(10);
+    //             return bcrypt.hashSync(str, salt);    
+    //             // return str;
+    //         }
+    //         return undefined;
+    //         // return new NotFound(MSG.NOT_FOUND, 'Not Found');
 
-        } catch (err) {
-            throw new InternalError(MSG.INTERNAL_ERROR, 'Password Hash Not Generated');
-        }
-    }
+    //     } catch (err) {
+    //         throw new InternalError(MSG.INTERNAL_ERROR, 'Password Hash Not Generated');
+    //     }
+    // }
 
     async addNewCustomer(req, res) {
         try {
             
-            // const hash_pass = this.generatePassword(req.body.password);
-            // if(typeof hash_pass != "string") {
-            //     return hash_pass;
-            // }
 
             const sanitize_data = {
                 ID: this.utils.generateUUID(),
@@ -68,7 +64,7 @@ class Customer extends BaseManager {
                 EmailID: req.body.emailid || undefined,
                 ContactNumber: req.body.contact_number ? parseInt(req.body.contact_number) : undefined,
                 // password: req.body.password ? bcrypt.hash(req.body.password, saltRounds) : "",
-                Password: this.generatePassword(req.body.password),
+                Password: this.utils.generatePassword(req.body.password),
                 LocationName: req.body.location_name || "",
                 Isactive: true,
                 
@@ -149,7 +145,7 @@ class Customer extends BaseManager {
                 EmailID: request.emailid || undefined,
                 ContactNumber: request.contact_number ? parseInt(request.contact_number) : undefined,
                 // password: request.password ? bcrypt.hash(request.password, saltRounds) : "",
-                Password: this.generatePassword(request.password),
+                Password: this.utils.generatePassword(request.password),
                 LocationName: request.location_name || undefined,
                 Isactive: true,
                 
@@ -183,36 +179,36 @@ class Customer extends BaseManager {
         }
     }
 
-    async resetPassword(req, res) {
-        try{
-            if(!req.body.EmailID || !req.body.CustomerID){
-                throw new ValidationError(MSG.VALIDATION_ERROR, "CustomerID Or EmailID is required")
-            }
-            let sanitize_data = {
-                EmailId: req.body.EmailID,
-                CustomerID: req.body.CustomerID
-            };
+    // async resetPassword(req, res) {
+    //     try{
+    //         if(!req.body.EmailID || !req.body.CustomerID){
+    //             throw new ValidationError(MSG.VALIDATION_ERROR, "CustomerID Or EmailID is required")
+    //         }
+    //         let sanitize_data = {
+    //             EmailId: req.body.EmailID,
+    //             CustomerID: req.body.CustomerID
+    //         };
 
-            let otp = Math.floor(1000 + Math.random() * 9000);
+    //         let otp = Math.floor(1000 + Math.random() * 9000);
 
-            const response = await this.CustomerRepository.resetPassword({...sanitize_data,otp:otp});
-            const RespData = {
-                code: 200,
-                status: "Success",
-                data: sanitize_data,
-                response: response
-            }
-            return RespData;
+    //         const response = await this.CustomerRepository.resetPassword({...sanitize_data,otp:otp});
+    //         const RespData = {
+    //             code: 200,
+    //             status: "Success",
+    //             data: sanitize_data,
+    //             response: response
+    //         }
+    //         return RespData;
 
 
-        }catch(err) {
-            console.log('Error Occured In Manager');
-            if(custom_validation_list.includes(err.name || "")) {
-                return err;
-            }
-            return new InternalError(MSG.INTERNAL_ERROR, err.message);
-        }
+    //     }catch(err) {
+    //         console.log('Error Occured In Customer Manager');
+    //         if(custom_validation_list.includes(err.name || "")) {
+    //             return err;
+    //         }
+    //         return new InternalError(MSG.INTERNAL_ERROR, err.message);
+    //     }
         
-    }
+    // }
 }
 module.exports = Customer;

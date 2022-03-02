@@ -5,14 +5,17 @@ const InternalError = require('../exception/internal.error')
 const utils = require('../constant/utils');
 const msg = require("../constant/msg");
 const {documentClient} = require('../services/aws.service')
+const customer_repository = require('./customer.repository');
+const { SNS } = require('../services/aws.service');
 
 class ResetPassword {
     constructor() {
         this.utils = new utils();
+        this.customer_repository = new customer_repository();
     }
 
     async newResetRequest(request) {
-        console.log(`New Reset Request Adding`);
+        console.log(`New Reset Request Adding`); 
         const params = {
             TableName: TABLE.TABLE_RESET_PASSWORD,
             Item: request,
@@ -51,33 +54,177 @@ class ResetPassword {
                 ProjectionExpression: ['ID', 'GeneratedAt'],
                 FilterExpression: ` ${expression_list.join(' and ')}  `,
                 ExpressionAttributeNames:{...expression_name, '#GeneratedAt': 'GeneratedAt'},
-                ExpressionAttributeValues: {...expression_value, ':START': minus_one_hr, ':END': current_time}
+                ExpressionAttributeValues: {...expression_value, ':START': minus_one_hr, ':END': current_time},
+                ScanIndexForward: true
             };
             // return params
             let data = await documentClient.scan(params).promise();
-            if(data) {
+            // return data;
+            console.log('LOG 1')
+            if(data?.Count || undefined) {
                 // return true if
                 //      1. Difference between GeneratedAt and currenttime is greater than 24 hrs AND
                 //      2. Items Cout is less than MAX_RESET_LIMIT
                 // else 
                 //      false
-                if((data?.Count || MAX_RESET_LIMIT) < MAX_RESET_LIMIT) {
-                    return false;
+                if((data?.Count || MAX_RESET_LIMIT) >= MAX_RESET_LIMIT) {
+                    let current_time = new Date(new Date().toISOString());
+                    let MinLastResetReq = current_time.setHours(current_time.getHours() - MIN_HOUR);
+                    
+                    return (data?.Items[0]?.GeneratedAt < MinLastResetReq) && data?.Items[0]?.GeneratedAt;
                 }
-                let current_time = new Date(new Date().toISOString());
-                let MinLastResetReq = current_time.setHours(current_time.getHours() - 24);
+                return data?.Items[0]?.GeneratedAt;
                 
-                return (data?.Items[0]?.GeneratedAt < MinLastResetReq);
                 // data.Items[0]?.GeneratedAt 
                 // return ((data?.Count || MAX_RESET_LIMIT) < MAX_RESET_LIMIT);
             }
-            return null;
+            console.log('LOG 2')
+            return true;
         } catch(err) {
             
             if(custom_validation_list.includes(err.name || "")) {
                 return err;
             }
             return new InternalError(msg.INTERNAL_ERROR, err.message);
+        }
+    }
+
+    async validateOTP({OTP, CustomerID}) {
+        try{
+            const MIN_HOUR = 24;
+
+            var {expression_list, expression_name, expression_value} = await this.utils.santize_expression_obj({
+                CustomerID: CustomerID
+            });
+
+            
+            let params = {
+                TableName: TABLE.TABLE_RESET_PASSWORD,
+                Items: {
+                    ProjectionExpression: ['ID', 'OTP', 'GeneratedAt'],
+                    FilterExpression: ` ${expression_list.join(' and ')}  `,
+                    ExpressionAttributeNames:expression_name,
+                    ExpressionAttributeValues: expression_value,
+                    ScanIndexForward: false
+                }
+            }
+
+            let data = await documentClient.scan(params).promise();
+            
+            // check OTP generated Time lies between current to current - 24 hrs
+            let max_time = new Date().toISOString();
+            let pre_time = new Date(max_time);
+            pre_time.setHours(pre_time.getHours() - MIN_HOUR);
+            let min_time = pre_time.toISOString();
+
+            if((data.Items[data.Count - 1].GeneratedAt < max_time) && (data.Items[data.Count - 1].GeneratedAt > min_time) ){
+                return data.Items[data.Count - 1].OTP;
+            }
+            return null;
+
+            // data.Items[data.Count - 1].GeneratedAt
+            // return {data: data, last: data.Items[0]};
+            // data.Items[0]?.GeneratedAt
+
+        } catch(err) {
+            if(custom_validation_list.includes(err.name || "")) {
+                return err;
+            }
+            return new InternalError(msg.INTERNAL_ERROR, err.message);
+        }
+    }
+
+    async resetPassword({EmailID, CustomerID, otp}) {
+        try{
+            
+            let customerDetail = await this.customer_repository.getCustomerDetail(
+                TABLE.TABLE_CUSTOMER, 
+                ['ID', 'UserName', 'EmailID', 'ContactNumber', 'Isactive'],
+                {ID: CustomerID, EmailID: EmailID}    
+            );
+            let user_id = customerDetail.Items[0]?.ID || undefined;
+            let user_name = customerDetail.Items[0]?.UserName || undefined;
+            let user_email = customerDetail.Items[0]?.EmailID || undefined;
+            var user_contact = customerDetail.Items[0]?.ContactNumber || undefined;
+            let user_active = customerDetail.Items[0]?.Isactive || false;
+
+            if(!user_active) {
+                throw new InternalError(msg.INTERNAL_ERROR, 'User is inactive');
+            }
+            // user_contact = '9030143660';
+            // console.log('contact', user_contact);
+            var params = {
+                Message: `Hi,${user_name}.\n OTP: ${otp}`,
+                PhoneNumber: '+91' + user_contact,
+                MessageAttributes: {
+                    'AWS.SNS.SMS.SenderID': {
+                        'DataType': 'String',
+                        'StringValue': `RESET`
+                    },
+                    'AWS.SNS.SMS.SMSType': {
+                        'DataType': 'String',
+                        'StringValue': `Transactional`
+                    }
+                }
+            };
+            // console.log(params.PhoneNumber);
+
+            let resp = await SNS.publish(params).promise();
+            // console.log(resp?.MessageId);
+            // console.log('OUTSIDE');
+            
+
+            return resp;
+            // console.log(tempRes);
+            // return {
+            //     code: 200,
+            //     status: "Success",
+            //     data: tempRes
+            // };
+            // // this.sns_service.publish(process.env.SNS_TOPIC, 
+            // //     JSON.stringify({}))
+
+        }catch(err) {
+            // console.log('Error Occured');
+            // console.log(err);
+            console.log('Message Sent Error', err.message);
+            throw new InternalError(msg.INTERNAL_ERROR, err.message);
+        }
+    }
+
+    async updatePassword({CustomerID, NewPassword}) {
+        try{
+
+            var { expression_list, expression_name, expression_value } = await this.utils.santize_expression_obj({Password: NewPassword});
+            
+            const getSortKey = {
+                TableName: TABLE.TABLE_CUSTOMER,
+                ProjectionExpression: ['CreatedAt'],
+                FilterExpression : " ID = :id ",
+                ExpressionAttributeValues : {
+                    ":id": CustomerID
+                }
+            }
+            const CreatedAt_VALUE = await documentClient.scan(getSortKey).promise();
+
+
+            let params = {
+                TableName: TABLE.TABLE_CUSTOMER,
+                Key: {
+                    "ID": CustomerID,
+                    "CreatedAt" : CreatedAt_VALUE.Items[0].CreatedAt || ""
+                },
+                UpdateExpression: `SET ${expression_list.join(', ')} `,
+                ExpressionAttributeNames: expression_name,
+                ExpressionAttributeValues: expression_value,
+                ReturnValues: "UPDATED_NEW"
+            };
+
+            const updateRes = await documentClient.update(params).promise();
+            if(updateRes) return updateRes;
+            return null;
+        }catch(err) {
+            throw new InternalError(msg.INTERNAL_ERROR, err.message);
         }
     }
     

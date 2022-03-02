@@ -1,3 +1,4 @@
+const bcrypt = require('bcryptjs');
 class helper_fn {
     constructor (){
 
@@ -8,6 +9,23 @@ class helper_fn {
             var rnd = Math.random()*16 |0, v = c === 'x' ? rnd : (rnd&0x3|0x8) ;
             return v.toString(16);
         });
+    }
+
+    generatePassword(str) {
+        // return str;
+        try {
+            if(str) {
+                // error
+                const salt =  bcrypt.genSaltSync(10);
+                return bcrypt.hashSync(str, salt);    
+                // return str;
+            }
+            return undefined;
+            // return new NotFound(MSG.NOT_FOUND, 'Not Found');
+
+        } catch (err) {
+            throw new InternalError(MSG.INTERNAL_ERROR, 'Password Hash Not Generated');
+        }
     }
 
     async santize_expression_obj(data) {
