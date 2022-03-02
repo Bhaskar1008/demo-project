@@ -121,19 +121,27 @@ class VehicleRepository {
         // will load vehicleImage data
         try{
             var image_res = [];
-            await ImageID_arr.forEach(async (image_id, index) => {
+            ImageID_arr.forEach(async (image_id, index) => {
+                // let params = {
+                //     TableName: TABLE.TABLE_VEHICLE_IMAGES,
+                //     FilterExpression: " ID = :id and CreatedAt = :createdAT ",
+                //     ExpressionAttributeValues: {
+                //         ":id": image_id,
+                //         ":createdAT": "2/28/2022"
+                //     }
+                // };
                 let params = {
-                    TableName: TABLE.TABLE_VEHICLE_IMAGES,
-                    FilterExpression: " ID = :id and CreatedAt = :createdAT ",
+                    TableName: "ResetPassword",
+                    FilterExpression: " ID = :id and GeneratedAt = :GeneratedAt ",
                     ExpressionAttributeValues: {
-                        ":id": image_id,
-                        ":createdAT": "2/28/2022"
+                        ":id": "78c2bcfd-5345-4bca-a5f8-c92f81a297be",
+                        ":GeneratedAt": "2022-03-02T08:09:06.473Z"
                     }
                 };
                 console.log('Before Log');
                 let data = await documentClient.scan(params).promise();
                 console.log('AFter Log');
-                console.log(data);
+                // console.log(data);
                 if(data) {
                     image_res.push(data);
                 }
