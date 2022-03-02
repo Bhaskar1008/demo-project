@@ -105,33 +105,67 @@ class VehicleRepository {
         } while (data.LastEvaluatedKey);
 
         const Items = scanResults;
+
+        await Items.forEach(async (obj, index) => {
+            if(obj.VehicleImage_ID) {
+                
+                let images = await this.VehicleImage(obj.VehicleImage_ID);
+                Items[index]['ImageData'] = images;
+            }
+        });
+
         // if (offset && limit) Items = scanResults.slice(offset, limit + offset);
         return { Items, LastEvaluatedKey: data.LastEvaluatedKey, Count };
     }
-    async VehicleImage(req) {
-// will load vehicleImage data
-        const params = {
-            TableName: TABLE.TABLE_VEHICLE_IMAGES
-        };
-        if (req.params.id) {
-            params.FilterExpression = "VehicleImage_ID = :id";
-            params.ExpressionAttributeValues = {
-                ":id": req.params.id
-            }
+    async VehicleImage(ImageID_arr) {
+        // will load vehicleImage data
+        try{
+            var image_res = [];
+            await ImageID_arr.forEach(async (image_id, index) => {
+                let params = {
+                    TableName: TABLE.TABLE_VEHICLE_IMAGES,
+                    FilterExpression: " ID = :id ",
+                    ExpressionAttributeValues: {
+                        ":id": image_id
+                    }
+                };
+                console.log('Before Log', params);
+                let data = await documentClient.scan(params).promise();
+                console.log('AFter Log');
+                console.log(data);
+                if(data) {
+                    image_res.push(data);
+                }
+            }); 
+            return image_res;
+        } catch(err) {
+            console.log('Error Raied', err.message);
         }
-        // return params
-        let scanResults = [];
-        let data, Count = 0;
-        do {
-            data = await documentClient.scan(params).promise();
-            scanResults.push(...data.Items);
-            Count += data.Count;
-            params.ExclusiveStartKey = data.LastEvaluatedKey;
-        } while (data.LastEvaluatedKey);
+        
 
-        const Items = scanResults;
-        // if (offset && limit) Items = scanResults.slice(offset, limit + offset);
-        return { Items, LastEvaluatedKey: data.LastEvaluatedKey, Count };
+
+        // const params = {
+        //     TableName: TABLE.TABLE_VEHICLE_IMAGES
+        // };
+        // if (req.params.id) {
+        //     params.FilterExpression = "VehicleImage_ID = :id";
+        //     params.ExpressionAttributeValues = {
+        //         ":id": req.params.id
+        //     }
+        // }
+        // // return params
+        // let scanResults = [];
+        // let data, Count = 0;
+        // do {
+        //     data = await documentClient.scan(params).promise();
+        //     scanResults.push(...data.Items);
+        //     Count += data.Count;
+        //     params.ExclusiveStartKey = data.LastEvaluatedKey;
+        // } while (data.LastEvaluatedKey);
+
+        // const Items = scanResults;
+        // // if (offset && limit) Items = scanResults.slice(offset, limit + offset);
+        // return { Items, LastEvaluatedKey: data.LastEvaluatedKey, Count };
     }
 
 }
