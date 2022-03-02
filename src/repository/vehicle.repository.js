@@ -106,13 +106,16 @@ class VehicleRepository {
 
         const Items = scanResults;
 
-        await Items.forEach(async (obj, index) => {
+        var index = 0;
+        for(const obj of Items) {
+        // await Items.forEach(async (obj, index) => {
             if(obj.VehicleImage_ID) {
                 
                 let images = await this.VehicleImage(obj.VehicleImage_ID);
-                Items[index]['ImageData'] = images;
+                Items[index]['VehcicleImages'] = images;
             }
-        });
+            index++;
+        }
 
         // if (offset && limit) Items = scanResults.slice(offset, limit + offset);
         return { Items, LastEvaluatedKey: data.LastEvaluatedKey, Count };
@@ -121,31 +124,52 @@ class VehicleRepository {
         // will load vehicleImage data
         try{
             var image_res = [];
-            ImageID_arr.forEach(async (image_id, index) => {
-                // let params = {
-                //     TableName: TABLE.TABLE_VEHICLE_IMAGES,
-                //     FilterExpression: " ID = :id and CreatedAt = :createdAT ",
-                //     ExpressionAttributeValues: {
-                //         ":id": image_id,
-                //         ":createdAT": "2/28/2022"
-                //     }
-                // };
+            for(const image_id of ImageID_arr) {
+
+            // }
+            // ImageID_arr.forEach(async (image_id, index) => {
                 let params = {
-                    TableName: "ResetPassword",
-                    FilterExpression: " ID = :id and GeneratedAt = :GeneratedAt ",
+                    TableName: TABLE.TABLE_VEHICLE_IMAGES,
+                    FilterExpression: " ID = :id ",
                     ExpressionAttributeValues: {
-                        ":id": "78c2bcfd-5345-4bca-a5f8-c92f81a297be",
-                        ":GeneratedAt": "2022-03-02T08:09:06.473Z"
+                        ":id": image_id
                     }
                 };
-                console.log('Before Log');
-                let data = await documentClient.scan(params).promise();
-                console.log('AFter Log');
+
+                // const params = {
+                //     TableName: "ResetPassword",
+                //     ProjectionExpression: ['OTP'],
+                //     FilterExpression : " ID = :id ",
+                //     ExpressionAttributeValues : {
+                //         ":id": "78c2bcfd-5345-4bca-a5f8-c92f81a297be"
+                //     }
+                // }
+                // const CreatedAt_VALUE = await documentClient.scan(getSortKey).promise();
+
+                // let params = {
+                //     TableName: "ResetPassword",
+                //     FilterExpression: " ID = :id and GeneratedAt = :GeneratedAt ",
+                //     ExpressionAttributeValues: {
+                //         ":id": "78c2bcfd-5345-4bca-a5f8-c92f81a297be",
+                //         ":GeneratedAt": "2022-03-02T08:09:06.473Z"
+                //     }
+                // };
+                // console.log('Before Log');
+                let scanResults = [];
+                let data, Count = 0;
+                do {
+                    data = await documentClient.scan(params).promise();
+                    scanResults.push(...data.Items);
+                    Count += data.Count;
+                    params.ExclusiveStartKey = data.LastEvaluatedKey;
+                } while (data.LastEvaluatedKey);
+                // let data = await documentClient.scan(params).promise();
+                // console.log('AFter Log');
                 // console.log(data);
-                if(data) {
-                    image_res.push(data);
+                if(scanResults) {
+                    image_res.push(scanResults);
                 }
-            }); 
+            } 
             return image_res;
         } catch(err) {
             console.log('Error Raied', err.message);
