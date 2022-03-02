@@ -124,12 +124,13 @@ class VehicleRepository {
             await ImageID_arr.forEach(async (image_id, index) => {
                 let params = {
                     TableName: TABLE.TABLE_VEHICLE_IMAGES,
-                    FilterExpression: " ID = :id ",
+                    FilterExpression: " ID = :id and CreatedAt = :createdAT ",
                     ExpressionAttributeValues: {
-                        ":id": image_id
+                        ":id": image_id,
+                        ":createdAT": "2/28/2022"
                     }
                 };
-                console.log('Before Log', params);
+                console.log('Before Log');
                 let data = await documentClient.scan(params).promise();
                 console.log('AFter Log');
                 console.log(data);
