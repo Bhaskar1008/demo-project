@@ -2,6 +2,7 @@
 const utils = require('../constant/utils');
 const BaseManager = require('./base.manager');
 const ValidationError = require('../exception/validation.error');
+const InternalError = require('../exception/internal.error');
 const NotFound = require('../exception/not-found.error');
 const vehicle_repository = require('../repository/vehicle.repository');
 const customer_repository = require('../repository/customer.repository');
@@ -137,11 +138,28 @@ class Vehicle extends BaseManager {
             return new InternalError(MSG.INTERNAL_ERROR, err);
         }
     }
-    // generateUUID(){
-    //     return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace( /[xy]/g , function(c) {
-    //         var rnd = Math.random()*16 |0, v = c === 'x' ? rnd : (rnd&0x3|0x8) ;
-    //         return v.toString(16);
-    //     });
-    // }
+    generateUUID(){
+        return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace( /[xy]/g , function(c) {
+            var rnd = Math.random()*16 |0, v = c === 'x' ? rnd : (rnd&0x3|0x8) ;
+            return v.toString(16);
+        });
+    }
+    async getVehicleList (req,res) {
+        try {
+            const response = await this.VehicleRepository.VehicleList(req);
+            // const result = await this.VehicleRepository.VehicleImage(req);
+            const RespData = {
+                status: 200,
+                msg: "Success",
+                data: response
+            }
+            return RespData;
+        }catch(err) {
+            if(custom_validation_list.includes(err.name || "")) {
+                return err;
+            }
+            return new InternalError(MSG.INTERNAL_ERROR, err);
+        }
+    }
 }
 module.exports = Vehicle;
