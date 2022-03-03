@@ -108,18 +108,20 @@ class VehicleRepository {
             const Items = scanResults;
             // return Items
 
-            Items.forEach(async (item, index) => {
+            var index = 0;
+            for(const item of Items){
+            // Items.forEach(async (item, index) => {
                 // item.VehicleImage_ID;
                 if (item.VehicleImage_ID) {
                     // console.log("Log 1",typeof this.VehicleImage)
-                    let Imagedata = await this.VehicleImage(item.VehicleImage_ID)
+                    let ImageData = await this.VehicleImage(item.VehicleImage_ID)
                     // console.log(Imagedata,"imagedata")
                     Items[index]['IMAGES'] = ImageData;
 
                 }
                 // console.log(item.VehicleImage_ID, "log2")
-             
-            });
+                index++;
+            }
             return Items;
             // if (Items.VehicleImage_ID.length) {
             //     console.log("Log 1")
@@ -135,21 +137,21 @@ class VehicleRepository {
 
 
 
-        const Items = scanResults;
+        // const Items = scanResults;
 
-        var index = 0;
-        for(const obj of Items) {
-        // await Items.forEach(async (obj, index) => {
-            if(obj.VehicleImage_ID) {
+        // var index = 0;
+        // for(const obj of Items) {
+        // // await Items.forEach(async (obj, index) => {
+        //     if(obj.VehicleImage_ID) {
                 
-                let images = await this.VehicleImage(obj.VehicleImage_ID);
-                Items[index]['VehcicleImages'] = images;
-            }
-            index++;
-        }
+        //         let images = await this.VehicleImage(obj.VehicleImage_ID);
+        //         Items[index]['VehcicleImages'] = images;
+        //     }
+        //     index++;
+        // }
 
-        // if (offset && limit) Items = scanResults.slice(offset, limit + offset);
-        return { Items, LastEvaluatedKey: data.LastEvaluatedKey, Count };
+        // // if (offset && limit) Items = scanResults.slice(offset, limit + offset);
+        // return { Items, LastEvaluatedKey: data.LastEvaluatedKey, Count };
     }
     async VehicleImage(ImageID_arr) {
         // will load vehicleImage data
@@ -198,7 +200,7 @@ class VehicleRepository {
                 // console.log('AFter Log');
                 // console.log(data);
                 if(scanResults) {
-                    image_res.push(scanResults);
+                    image_res.push(scanResults[0]);
                 }
             } 
             return image_res;
@@ -212,11 +214,8 @@ class VehicleRepository {
         //     TableName: TABLE.TABLE_VEHICLE_IMAGES
         // };
         // if (req.params.id) {
-<<<<<<< HEAD
         //     params.FilterExpression = "VehicleImage_ID = :id";
-=======
         //     params.FilterExpression = "ID = :id";
->>>>>>> 849bf4af147c59e21c0fe216cabdc9cc42e360c9
         //     params.ExpressionAttributeValues = {
         //         ":id": req.params.id
         //     }
