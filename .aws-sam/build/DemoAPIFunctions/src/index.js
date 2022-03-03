@@ -57,7 +57,11 @@ app.post('/validate-otp', demoProjectApi.validateOTP);
 
 // add new vehicle {contains base64 images}
 app.post('/addVehicle', base64_upload.array('vehicle_images', 10), demoProjectApi.addNewVehicle);
+// vehicle By CustomerID
 app.get('/vehicle/customer/:id', demoProjectApi.getVehicleList);
+
+// vehicale Details along Imagedata
+app.get('/vehicleDetails/:id', demoProjectApi.getVehicleById);
 
 
 app.get('/temp/:id',async (req, res) => {
