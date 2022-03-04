@@ -31,6 +31,17 @@ class demoProjectApi extends base_controller {
         }
     }
 
+    async verifyEmailandMobileNumber(req, res) {
+        try{
+            console.log('verifying email and number');
+            const getVerifiedData = await this.customer.verifyEmailandMobile(req);
+            this.ok(res, getVerifiedData)
+        } catch (err) {
+            
+            this.error(res, err);
+        }
+    }
+
     async addNewCustomer(req, res) {
         try {
             console.log("New Customer Data..");
@@ -108,6 +119,18 @@ class demoProjectApi extends base_controller {
             console.log('Getting  vehicle detail');
             const getVehicleDetail = await this.vehical.getVehicleDetail(req);
             this.ok(res, getVehicleDetail)
+        } catch (err) {
+            
+            this.error(res, err);
+        }
+    }
+
+    async getVehicleImageById(req, res) {
+        console.log("In demo")
+        try{
+            console.log('Getting  vehicle Immage detail');
+            const getVehicleIMGDetail = await this.vehical.getVehicleImgDetail(req);
+            this.ok(res, getVehicleIMGDetail)
         } catch (err) {
             
             this.error(res, err);

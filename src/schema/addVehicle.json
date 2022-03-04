@@ -12,7 +12,16 @@
         "VehicleNumber",
         "RegistrationPlace",
         "Currentlocation",
-        "NoOfOwners"
+        "NoOfOwners",
+        "Make",
+        "Model",
+        "Varient",
+        "Year",
+        "Color",
+        "Fueltype",
+        "VehicleCategory",
+        "Price",
+        "EngineCapcityCC"
     ],
     "properties": {
         "ID": {
@@ -20,80 +29,148 @@
             "description": "Unique ID"
         },
         "VehicleServiceType": {
-            "type":"string" 
+            "type":"string",
+            "enum": ["buy","sell","rental"] ,
+            "message" : {
+                "required" : "Please enter the Vehicle Service Type as an input: buy, sell and rental.",
+                "pattern" : "Please enter the Vehicle Service Type as an input: buy, sell and rental."
+            }
         },
         "VehicleType": {
-            "type":"string"
+            "type":"string",
+            "enum": ["car","bike","tractor"] ,
+            "message" : {
+                "required" : "Please enter the Vehicle Type as an input: car, bike and tractor.",
+                "pattern" : "Please enter the Vehicle Type as an input: car, bike and tractor."
+            }
         },
         "VehicleNumber": {
-            "type":"string"   
+            "type":"string",
+            "message" : {
+                "required" : "Please enter the Vehicle number.",
+                "pattern" : "Please enter the Vehicle number."
+            }
         },
         "Make": {
-            "type":"string"
+            "type":"string",
+            "message" : {
+                "required" : "Please enter the Vehicle make.",
+                "pattern" : "Please enter the Vehicle make."
+            }
         },
         "Model": {
-            "type":"string"
+            "type":"string",
+            "message" : {
+                "required" : "Please enter the Vehicle model.",
+                "pattern" : "Please enter the Vehicle model."
+            }
         },
         "Varient": {
-           "type":"string"
+           "type":"string",
+            "message" : {
+                "required" : "Please enter the Vehicle varient.",
+                "pattern" : "Please enter the Vehicle varient."
+            }
         },
         "Year": {
-          "type":"string"
+          "type":"string",
+            "message" : {
+                "required" : "Please enter the Vehicle year.",
+                "pattern" : "Please enter the Vehicle year."
+            }
         },
         "Color":{
-            "type":"string"
+            "type":"string",
+            "message" : {
+                "required" : "Please enter the Vehicle colour.",
+                "pattern" : "Please enter the Vehicle colour."
+            }
         },
         "RegistrationPlace":{
-            "type":"string"
+            "type":"string",
+            "message" : {
+                "required" : "Please enter the Vehicle registration place.",
+                "pattern" : "Please enter the Vehicle registration place."
+            }
         },
         "Currentlocation":{
-            "type":"string"
+            "type":"string",
+            "message" : {
+                "required" : "Please enter the Vehicle current location.",
+                "pattern" : "Please enter the Vehicle current location."
+            }
         },
         "Fueltype":{
-            "type":"string"
+            "type":"string",
+            "enum": ["deisel","petrol"],
+            "message" : {
+                "required" : "Please enter the Vehicle fuel type as of deisel and petrol.",
+                "pattern" : "Please enter the Vehicle fuel type as of deisel and petrol."
+            }
         },
         "Transmissiontype":{
-            "type":"string"
+            "type":"string",
+            "message" : {
+                "required" : "Please enter the Vehicle transmission type.",
+                "pattern" : "Please enter the Vehicle transmission type."
+            }
         },
         "Gares":{
-            "type":"string"
+            "type":"string",
+            "message" : {
+                "required" : "Please enter the number of gares.",
+                "pattern" : "Please enter the numbers of gares."
+            }
         },
         "Price":{
-            "type":"string"
+            "type":"string",
+            "message" : {
+                "required" : "Please enter the Vehicle price.",
+                "pattern" : "Please enter the Vehicle price."
+            }
         },
         "VehicleCategory":{
-            "type":"string"
+            "type":"string",
+            "enum": ["two wheeler","four wheeler","three wheeler"] ,
+            "message" : {
+                "required" : "Please enter the Vehicle Type as an input: two wheeler, three wheeler and four wheeler.",
+                "pattern" : "Please enter the Vehicle Type as an input: two wheeler, three wheeler and four wheeler."
+            }
         },
         "NoOfOwners":{
-            "type":"number"
+            "type":"number",
+            "message" : {
+                "required" : "Please enter the no. of owners.",
+                "pattern" : "Please enter the no. of owners."
+            }
         },
         "EngineCapcityCC":{
-            "type":"string"
+            "type":"string",
+            "message" : {
+                "required" : "Please enter the Engine capacity",
+                "pattern" : "Please enter the Engine Capacity"
+            }
         },
         "VehicleFullDetails": {
             "type": [
                 "array"
             ],
-            "items":{
-                "type":"string"
-            },
-            "description": "Vehicle  Details"
-        },
-        "VehicleImage_ID": {
-            "type": [
-                "array"
-            ],
-            "items":{
-                "type":"string"
-            },
-            "description": "Vehicle Image Id"
+            "description": "Vehicle  Details",
+            "message" : {
+                "required" : "Please enter the valid VehicleFullDetails.",
+                "pattern" : "Please enter the valid VehicleFullDetails."
+            }
         },
         "CreatedAt": {
             "type": "string",
             "description": "Created At Date"
         },
         "CreatedBy": {
-            "type": "string"
+            "type": "string",
+            "message" : {
+                "required" : "Please provide the customer-id.",
+                "pattern" : "Please enter the customer-id."
+            }
         }
     }
 }

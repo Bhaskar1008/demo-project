@@ -1,6 +1,6 @@
 "use strict";
 const { set } = require("express/lib/application");
-const demoProjectApi = require("./demoProject-api.controller");
+const amProjectApi = require("./amProject-api.controller");
 
 function proxy(obj) {
     let handler = {
@@ -15,7 +15,7 @@ function proxy(obj) {
     return new Proxy(obj, handler);
 }
 
-module.exports.demoProjectApi = proxy(new demoProjectApi());
+module.exports.amProjectApi = proxy(new amProjectApi());
 module.exports.defaultHandler = (req, res) => {
     res.status(200).send("Under Construction");
 };

@@ -49,6 +49,72 @@ class CustomerRepository{
         }
     }
 
+    async verifyEmail(req) {
+        try{
+            // this will load all customer data 
+            const params = {
+                TableName: TABLE.TABLE_CUSTOMER
+            };
+            if(req.query.emailid) {
+                params.FilterExpression = " EmailID = :emailid";
+                params.ExpressionAttributeValues = {
+                    ":emailid": req.query.emailid
+                }
+            }
+
+            let scanResults = [];
+            let data, Count = 0;
+            do {
+                data = await documentClient.scan(params).promise();
+                scanResults.push(...data.Items);
+                Count += data.Count;
+                params.ExclusiveStartKey = data.LastEvaluatedKey;
+            } while (data.LastEvaluatedKey);
+            
+            const Items = scanResults
+            // if (offset && limit) Items = scanResults.slice(offset, limit + offset);
+            return { Items, LastEvaluatedKey: data.LastEvaluatedKey, Count };
+        }catch(err) {
+            if(custom_validation_list.includes(err.name || "")) {
+                throw new InternalError(MSG.INTERNAL_ERROR, err);
+            }
+            throw new InternalError(MSG.INTERNAL_ERROR, err.message);
+        }
+    }
+
+     async verifyMobile(req) {
+        try{
+            // this will load all customer data 
+            const params = {
+                TableName: TABLE.TABLE_CUSTOMER
+            };
+
+            if(req.query.mobilenumber) {
+                params.FilterExpression = " ContactNumber = :ph";
+                params.ExpressionAttributeValues = {
+                    ":ph": parseInt(req.query.mobilenumber)
+                }
+            }
+
+            let scanResults = [];
+            let data, Count = 0;
+            do {
+                data = await documentClient.scan(params).promise();
+                scanResults.push(...data.Items);
+                Count += data.Count;
+                params.ExclusiveStartKey = data.LastEvaluatedKey;
+            } while (data.LastEvaluatedKey);
+            
+            const Items = scanResults
+            // if (offset && limit) Items = scanResults.slice(offset, limit + offset);
+            return { Items, LastEvaluatedKey: data.LastEvaluatedKey, Count };
+        }catch(err) {
+            if(custom_validation_list.includes(err.name || "")) {
+                throw new InternalError(MSG.INTERNAL_ERROR, err);
+            }
+            throw new InternalError(MSG.INTERNAL_ERROR, err.message);
+        }
+    }
     // async addCustomer() {
 
     //     return await {res: "In process"}
@@ -78,7 +144,7 @@ class CustomerRepository{
         try {
             const params = {
                 TableName: TABLE.TABLE_CUSTOMER,
-                ProjectionExpression: ['Password'],
+                ProjectionExpression: ['Password','ID'],
                 FilterExpression: " EmailID = :emailID ",
                 ExpressionAttributeValues: {
                     ":emailID": email

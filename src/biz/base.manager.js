@@ -29,16 +29,21 @@ class BaseManager {
 
 
     validate(schemaPath, data) {
-        if (data == null) {
-            return {
-                valid: false,
-                errors: ['Validation failed. Argument should not be null for schema validation.']
-            };
+        try {
+            if (data == null) {
+                return {
+                    valid: false,
+                    errors: ['Validation failed. Argument should not be null for schema validation.']
+                };
+            }
+            const schema = fs.readFileSync(process.cwd() + schemaPath, 'utf8').toString();
+            const result = this.validator.validate(data, JSON.parse(schema));
+            const err = this.formatErrors(result);
+            return err;
+        } catch (e) {
+            console.log(e);
+            return e;
         }
-        const schema = fs.readFileSync(process.cwd() + schemaPath, 'utf8').toString();
-        const result = this.validator.validate(data, JSON.parse(schema));
-        const err = this.formatErrors(result);
-        return err;
     }
 
     /**
@@ -52,24 +57,26 @@ class BaseManager {
         var required_fields = [];
         for (let i = 0; i < validationResult.errors.length; i++) {
             let error = validationResult.errors[i];
+            console.log(error);
             if(error.name == 'required') required_fields.push(error.argument);
             if (error.property.startsWith('instance.')) {
                 const field = error.property.replace('instance.', '');
                 if (!formattedResult.errors[field]) {
                     formattedResult.errors[field] = [];
                 }
-                formattedResult.errors[field].push(error.message);
+                formattedResult.errors[field].push(validationResult.schema.properties[field].message.pattern);
             } else {
                 if (!formattedResult.errors[error.argument]) {
                     formattedResult.errors[error.argument] = [];
                 }
-                formattedResult.errors[error.argument].push(error.message);
+                formattedResult.errors[error.argument].push(validationResult.schema.properties[error.argument].message.required);
             }
         }
-        if(required_fields.length) {
-            formattedResult.errors.Error_msg = `${required_fields.join(',')} ${required_fields.length > 1 ? 'are' : 'is'} required`;
-        }
-        return formattedResult;
+        // if(required_fields.length) {
+        //     formattedResult.errors.Error_msg = `${required_fields.join(',')} ${required_fields.length > 1 ? 'are' : 'is'} required`;
+        // }
+        let formattedResults_data = formattedResult.errors;
+        return Object.keys(formattedResults_data).length > 0 ? formattedResults_data[Object.keys(formattedResults_data)[0]][0] : formattedResult;
     }
 }
 

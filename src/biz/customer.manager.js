@@ -3,6 +3,7 @@
 const utils = require('../constant/utils');
 const bcrypt = require('bcryptjs');
 const BaseManager = require('./base.manager');
+const BadRequestError = require('../exception/bad-request.error');
 const ValidationError = require('../exception/validation.error');
 const InternalError = require('../exception/internal.error');
 const NotFound = require('../exception/not-found.error');
@@ -23,10 +24,45 @@ class Customer extends BaseManager {
         // return {test: "abcd unique", return_data: customer_repository()};
         try {
             const response = await this.CustomerRepository.CustomerList(req);
+            if (response.Count > 0) {
+                const RespData = {
+                    code: 200,
+                    status: "Success",
+                    data: response.Items[0]
+                }
+                return RespData;
+            } else {
+                throw new NotFound("Not FOund.", "Please enter the valid customer id.")
+            }
+        }catch(err) {
+            if(custom_validation_list.includes(err.name || "")) {
+                throw err;
+            }
+            throw new InternalError(MSG.INTERNAL_ERROR, err);
+        }
+    }
+
+    async verifyEmailandMobile(req) {
+        // return {test: "abcd unique", return_data: customer_repository()};
+        try {
+            if (req.query.emailid ) {
+                const response = await this.CustomerRepository.verifyEmail(req);
+                if (response.Count > 0) {
+                    throw new ValidationError(MSG.VALIDATION_ERROR,`Email-ID: ${req.query.emailid} is already registered.`)
+                }
+            } else if ( req.query.mobilenumber) {
+                const response = await this.CustomerRepository.verifyMobile(req);
+                if (response.Count > 0) {
+                    throw new ValidationError(MSG.VALIDATION_ERROR,`Mobile-Number: ${req.query.mobilenumber} is already Linked.`)
+                }
+            } else {
+                throw new NotFound('Not Found', 'Please enter the email id or Mobile Number to verify.')
+            }
+
+            
             const RespData = {
-                status: 200,
-                msg: "Success",
-                data: response
+                code: 200,
+                status: "Success"
             }
             return RespData;
         }catch(err) {
@@ -36,7 +72,6 @@ class Customer extends BaseManager {
             throw new InternalError(MSG.INTERNAL_ERROR, err);
         }
     }
-
     // generatePassword(str) {
     //     // return str;
     //     try {
@@ -57,21 +92,23 @@ class Customer extends BaseManager {
     async addNewCustomer(req, res) {
         try {
             
-
             const sanitize_data = {
                 ID: this.utils.generateUUID(),
                 UserName: req.body.username || undefined,
+                FirstName: req.body.firstname || undefined,
+                LastName: req.body.lastname || undefined,
                 EmailID: req.body.emailid || undefined,
                 ContactNumber: req.body.contact_number ? parseInt(req.body.contact_number) : undefined,
                 // password: req.body.password ? bcrypt.hash(req.body.password, saltRounds) : "",
                 Password: this.utils.generatePassword(req.body.password),
                 LocationName: req.body.location_name || "",
+                Pincode: req.body.pincode ? parseInt(req.body.pincode) : undefined,
                 Isactive: true,
                 
                 VehicleID: this.sanitizeArray(req.body.vehicle_id),
                 LoanID: this.sanitizeArray(req.body.loan_id),
                 WhishlistID: this.sanitizeArray(req.body.whishlist_id),
-                PurchasedAccessoriesID: this.sanitizeArray(req.body.purchased_accessories_id),
+                PurchasedAccessoriessID: this.sanitizeArray(req.body.purchased_accessories_id),
 
                 LoanAgreementtemplate: req.body.loan_agreement_template || "",
                 CreatedAt: new Date().toLocaleString(),
@@ -84,13 +121,12 @@ class Customer extends BaseManager {
                 const RespData = {
                     code: 200,
                     status: "Success",
-                    data: sanitize_data,
-                    response: response
+                    data: "Successfully Submitted...",
                 }
                 return RespData;
             }
-            
-            throw new ValidationError(MSG.VALIDATION_ERROR, validationResult.errors);
+            console.log('---failed---' + JSON.stringify(validationResult));
+            throw new ValidationError(MSG.VALIDATION_ERROR, validationResult);
         } catch(err) {
             if(custom_validation_list.includes(err.name || "")) {
                 throw err;
@@ -111,15 +147,19 @@ class Customer extends BaseManager {
                 const passwordItem = await this.CustomerRepository.validateUser(sanitize_data);
 
                 const password = passwordItem.Items[0]?.Password || "";
-                
-                const RespData = {
-                    code: 200,
-                    status: "Success",
-                    // data: password,
-                    res: bcrypt.compareSync(sanitize_data.password, password ),
-                    // sanitize_data: sanitize_data
+                if (bcrypt.compareSync(sanitize_data.password, password)) {
+                    const RespData = {
+                        code: 200,
+                        status: "Success",
+                        // data: password,
+                        msg: "Authenticate Successfully.",
+                        customer_id: passwordItem.Items[0]["ID"]
+                        // sanitize_data: sanitize_data
+                    }
+                    return RespData;
+                } else {
+                    throw new BadRequestError('Authentication Failed',"Please enter the correct EmailID and Password.")
                 }
-                return RespData;
             }
             throw new ValidationError(MSG.VALIDATION_ERROR, validationResult.errors);
         } catch (err) {

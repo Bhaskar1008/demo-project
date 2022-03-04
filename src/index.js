@@ -25,6 +25,10 @@ const base64_upload = multer({
       }    
  });
 
+app.set('port', process.env.PORT || 4000);
+app.set('views', path.join(__dirname, 'views'));
+app.set('view engine', 'ejs');
+
 //body parser 
 // app.use(bodyParser.text());
 
@@ -35,38 +39,47 @@ app.use(bodyParser.urlencoded({ extended: true }));
 // app.use(cors());
 
 const {
-    demoProjectApi,
+    amProjectApi,
     defaultHandler
 } = require("./controller/index.js");
 
 // get Customers/specific customer
-app.get('/customer/:id?', demoProjectApi.getCustomerList);
+app.get('/customer/:id?', amProjectApi.getCustomerList);
+
+app.get('/verifyEMailMobile', amProjectApi.verifyEmailandMobileNumber);
 
 // update Customer details
-app.post('/updateCustomer', demoProjectApi.updateCustomerDetail );
+app.post('/updateCustomer', amProjectApi.updateCustomerDetail );
 
 // add new customer
-app.post('/AddCustomer', demoProjectApi.addNewCustomer);
+app.post('/AddCustomer', amProjectApi.addNewCustomer);
 
 // validate user login
-app.post('/validateLogin', demoProjectApi.validateLogin );
+app.post('/validateLogin', amProjectApi.validateLogin );
 
-app.post('/reset-password', demoProjectApi.resetPassword );
+app.post('/reset-password', amProjectApi.resetPassword );
 
-app.post('/validate-otp', demoProjectApi.validateOTP);
+app.post('/validate-otp', amProjectApi.validateOTP);
 
 // add new vehicle {contains base64 images}
-app.post('/addVehicle', base64_upload.array('vehicle_images', 10), demoProjectApi.addNewVehicle);
+app.post('/addVehicle', base64_upload.array('vehicle_images', 10), amProjectApi.addNewVehicle);
 // vehicle By CustomerID
-app.get('/vehicle/customer/:id', demoProjectApi.getVehicleList);
+app.get('/vehicle/customer/:id', amProjectApi.getVehicleList);
 
 // vehicale Details along Imagedata
-app.get('/vehicleDetails/:id', demoProjectApi.getVehicleById);
+app.get('/vehicleDetails/:id', amProjectApi.getVehicleById);
 
 
-app.get('/temp/:id',async (req, res) => {
-  const resp = await new temp().validateResetLimit(req.params.id);
-  res.send(resp);
+app.get('/vehicleImageDetails', amProjectApi.getVehicleImageById);
+
+
+// app.get('/temp/:id',async (req, res) => {
+//   const resp = await new temp().validateResetLimit(req.params.id);
+//   res.send(resp);
+// });
+
+app.listen(4000, function () {
+    console.log('Server is running.. on Port https://localhost:4000/');
 });
 
 

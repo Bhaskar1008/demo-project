@@ -19,7 +19,6 @@ class VehicleRepository {
         if (data) return data;
         return null;
     }
-
     // function to upload images of vehicle
     async vehicleImageUpload(request) {
         try {
@@ -29,10 +28,60 @@ class VehicleRepository {
                     Item: obj
                 };
                 let data = await documentClient.put(params).promise();
+                if (data) return data;
+                return null;
             });
             return {};
 
         } catch (err) {
+            throw new InternalError(msg.INTERNAL_ERROR, err.message);
+        }
+
+    }
+
+    async updateCustomerVehicleDetails(data, id) {
+        try {
+            var filtered_data = {};
+            var expression_list = [];
+            var expression_name = {};
+            var expression_value = {};
+            Object.entries(data).map(([key, value], index) => {
+                if (value) {
+                    filtered_data[key] = value;
+                    expression_list.push(`#KEY_${index} = :VALUE_${index}`);
+                    expression_name[`#KEY_${index}`] = key;
+                    expression_value[`:VALUE_${index}`] = value;
+                }
+            });
+
+            const getSortKey = {
+                TableName: TABLE.TABLE_CUSTOMER,
+                ProjectionExpression: ['CreatedAt'],
+                FilterExpression: " ID = :id ",
+                ExpressionAttributeValues: {
+                    ":id": id
+                }
+            }
+            const CreatedAt_VALUE = await documentClient.scan(getSortKey).promise();
+            // console.log(typeof CreatedAt_VALUE.Items.at(0))
+            const params = {
+                TableName: TABLE.TABLE_CUSTOMER,
+                Key: {
+                    "ID": id,
+                    "CreatedAt": CreatedAt_VALUE.Items[0].CreatedAt || ""
+                },
+                UpdateExpression: `SET ${expression_list.join(', ')} `,
+                ExpressionAttributeNames: expression_name,
+                ExpressionAttributeValues: expression_value,
+                ReturnValues: "UPDATED_NEW"
+            };
+            // return params;
+            const updateRes = await documentClient.update(params).promise();
+
+            if (updateRes) return updateRes;
+            return null;
+        } catch (err) {
+            // console.log('Error Raised Here', err.message);
             throw new InternalError(msg.INTERNAL_ERROR, err.message);
         }
 
@@ -125,8 +174,9 @@ class VehicleRepository {
                 index++;
             }
             let customerData = await this.CustomerList(req.params.id)
-            console.log("customerDAta",req.params.id)
-            return {"CustomerDetails":customerData, "VehicleDetails":Items};
+            console.log("customerDAta", req.params.id)
+            let c_data = customerData.Items ? customerData.Items[0] : customerData;
+            return {"CustomerDetails": c_data, "VehicleDetails":Items};
             // if (Items.VehicleImage_ID.length) {
             //     console.log("Log 1")
 

@@ -34,8 +34,8 @@ class Vehicle extends BaseManager {
         // return  req.body;
             const sanitize_data = {
                 ID:this.utils.generateUUID(), 
-                VehicleServiceType: req.body.VehicleServiceType || "",
-                VehicleType: req.body.VehicleType || "",
+                VehicleServiceType: req.body.VehicleServiceType.toLowerCase() || "",
+                VehicleType: req.body.VehicleType.toLowerCase() || "",
                 VehicleNumber: req.body.VehicleNumber || "" ,
                 Make: req.body.Make || "",
                 Model: req.body.Model || "",
@@ -44,15 +44,15 @@ class Vehicle extends BaseManager {
                 Color: req.body.Color || "",
                 RegistrationPlace: req.body.RegistrationPlace || "",
                 Currentlocation: req.body.Currentlocation || "",
-                Fueltype: req.body.Fueltype || "",
+                Fueltype: req.body.Fueltype.toLowerCase() || "",
                 Transmissiontype: req.body.Transmissiontype || "",
                 Gares: req.body.Gares || "",
                 Price: req.body.Price || "",
-                VehicleCategory: req.body.VehicleCategory || "",
+                VehicleCategory: req.body.VehicleCategory.toLowerCase() || "",
                 NoOfOwners: (req.body.NoOfOwners ? parseInt(req.body.NoOfOwners) : 0),
                 EngineCapcityCC: req.body.EngineCapcityCC || "",
-                VehicleFullDetails: this.sanitizeArray(req.body.VehicleFullDetails),
-                VehicleImage_ID: this.sanitizeArray(req.body.VehicleImage_ID),
+                VehicleFullDetails: req.body.VehicleFullDetails? JSON.parse(req.body.VehicleFullDetails) : "",
+                VehicleImage_ID: req.body.VehicleImage_ID ? JSON.parse(req.body.VehicleImage_ID) : "",
                 CreatedAt: new Date().toLocaleString(),
                 CreatedBy: req.body.CreatedBy || ""
             };
@@ -69,7 +69,7 @@ class Vehicle extends BaseManager {
                 const response = await this.VehicleRepository.addVehicle(sanitize_data);
 
                 if(response === null) {
-                    throw new InternalError(MSG.INTERNAL_ERROR, "Vehicle Add issue");
+                    throw new InternalError(MSG.INTERNAL_ERROR, "Vehicle Adding issue");
                 }
                 // let response = "test_success";
                 // return {response:response}
@@ -116,6 +116,9 @@ class Vehicle extends BaseManager {
                 });
                 
                 let imageUploadRes = await this.VehicleRepository.vehicleImageUpload(table_params);
+                if (imageUploadRes == null) {
+                    throw new InternalError(MSG.INTERNAL_ERROR, "Error while uploading the Images.");
+                }
                 
                 if(image_validation_status.length) {
                     RespData['ImageUploadStatus'] = image_validation_status;
@@ -125,12 +128,19 @@ class Vehicle extends BaseManager {
                 if(images_id_list.length) {
                     // call vehicle Update Detail repository/lamda functuon
                     let updateRes = await this.VehicleRepository.updateVehicleDetails({VehicleImage_ID: images_id_list}, sanitize_data.ID);
-                
+                    if (updateRes == null) {
+                        throw new InternalError(MSG.INTERNAL_ERROR, "Error while uploading the Image file.");
+                    }
+                }
+                console.log('Vehicle ID updating');
+                let updateCustRes = await this.VehicleRepository.updateCustomerVehicleDetails({Vehicle_ID: [sanitize_data.ID]}, req.body.CreatedBy);
+                if (updateCustRes == null) {
+                    throw new InternalError(MSG.INTERNAL_ERROR, "Error while uploading the Image files.");
                 }
 
                 return RespData;
             }
-            throw new ValidationError(MSG.VALIDATION_ERROR, validationResult.errors);
+            throw new ValidationError(MSG.VALIDATION_ERROR, validationResult);
         }catch(err) {
             if(custom_validation_list.includes(err.name || "")) {
                 return err;
@@ -168,6 +178,28 @@ class Vehicle extends BaseManager {
                 status: 200,
                 msg: "Success",
                 vehicleDetails: response
+            }
+            return RespData;
+        }catch(err) {
+            if(custom_validation_list.includes(err.name || "")) {
+                return err;
+            }
+            return new InternalError(MSG.INTERNAL_ERROR, err);
+        }
+    }
+
+    async getVehicleImgDetail(req,res) {
+        console.log("In Manager")
+        try {
+            let image_arr = req.query.image_id ? JSON.parse(req.query.image_id) : []
+            if (image_arr.length < 1) {
+                throw new ValidationError(MSG.VALIDATION_ERROR,"Please provide the Image-ID")
+            }
+            const response = await this.VehicleRepository.VehicleImage(image_arr);
+            const RespData = {
+                status: 200,
+                msg: "Success",
+                vehicleImageDetails: response
             }
             return RespData;
         }catch(err) {
